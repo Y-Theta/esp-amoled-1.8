@@ -1,71 +1,4 @@
-#include <stdio.h>
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/gpio.h"
-#include "driver/i2c.h"
-#include "driver/spi_master.h"
-#include "esp_timer.h"
-#include "esp_lcd_panel_io.h"
-#include "esp_lcd_panel_vendor.h"
-#include "esp_lcd_panel_ops.h"
-#include "esp_err.h"
-#include "esp_log.h"
-
-#include "lvgl.h"
-#include "lv_demos.h"
-#include "esp_lcd_sh8601.h"
-#include "esp_lcd_touch_ft5x06.h"
-
-#include "esp_io_expander_tca9554.h"
-
-static const char *TAG = "example";
-static SemaphoreHandle_t lvgl_mux = NULL;
-
-#define LCD_HOST SPI2_HOST
-#define TOUCH_HOST I2C_NUM_0
-
-#if CONFIG_LV_COLOR_DEPTH == 32
-#define LCD_BIT_PER_PIXEL (24)
-#elif CONFIG_LV_COLOR_DEPTH == 16
-#define LCD_BIT_PER_PIXEL (16)
-#endif
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// Please update the following configuration according to your LCD spec //////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define EXAMPLE_LCD_BK_LIGHT_ON_LEVEL 1
-#define EXAMPLE_LCD_BK_LIGHT_OFF_LEVEL !EXAMPLE_LCD_BK_LIGHT_ON_LEVEL
-#define EXAMPLE_PIN_NUM_LCD_CS (GPIO_NUM_12)
-#define EXAMPLE_PIN_NUM_LCD_PCLK (GPIO_NUM_11)
-#define EXAMPLE_PIN_NUM_LCD_DATA0 (GPIO_NUM_4)
-#define EXAMPLE_PIN_NUM_LCD_DATA1 (GPIO_NUM_5)
-#define EXAMPLE_PIN_NUM_LCD_DATA2 (GPIO_NUM_6)
-#define EXAMPLE_PIN_NUM_LCD_DATA3 (GPIO_NUM_7)
-#define EXAMPLE_PIN_NUM_LCD_RST (-1)
-#define EXAMPLE_PIN_NUM_BK_LIGHT (-1)
-
-// The pixel number in horizontal and vertical
-#define EXAMPLE_LCD_H_RES 368
-#define EXAMPLE_LCD_V_RES 448
-
-#define EXAMPLE_USE_TOUCH 1
-
-#if EXAMPLE_USE_TOUCH
-#define EXAMPLE_PIN_NUM_TOUCH_SCL (GPIO_NUM_14)
-#define EXAMPLE_PIN_NUM_TOUCH_SDA (GPIO_NUM_15)
-#define EXAMPLE_PIN_NUM_TOUCH_RST ((gpio_num_t)-1)
-#define EXAMPLE_PIN_NUM_TOUCH_INT (GPIO_NUM_21)
-
-esp_lcd_touch_handle_t tp = NULL;
-#endif
-
-#define EXAMPLE_LVGL_BUF_HEIGHT (EXAMPLE_LCD_V_RES / 4)
-#define EXAMPLE_LVGL_TICK_PERIOD_MS 2
-#define EXAMPLE_LVGL_TASK_MAX_DELAY_MS 500
-#define EXAMPLE_LVGL_TASK_MIN_DELAY_MS 1
-#define EXAMPLE_LVGL_TASK_STACK_SIZE (4 * 1024)
-#define EXAMPLE_LVGL_TASK_PRIORITY 2
+#include "common.h"
 
 static const sh8601_lcd_init_cmd_t lcd_init_cmds[] = {
     {0x11, (uint8_t[]){0x00}, 0, 120},
@@ -79,15 +12,13 @@ static const sh8601_lcd_init_cmd_t lcd_init_cmds[] = {
     {0x51, (uint8_t[]){0xFF}, 1, 0},
 };
 
-static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
-{
+static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx) {
     lv_disp_drv_t *disp_driver = (lv_disp_drv_t *)user_ctx;
     lv_disp_flush_ready(disp_driver);
     return false;
 }
 
-static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
-{
+static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map) {
     esp_lcd_panel_handle_t panel_handle = (esp_lcd_panel_handle_t)drv->user_data;
     const int offsetx1 = area->x1;
     const int offsetx2 = area->x2;
@@ -105,8 +36,7 @@ static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_
     *to++ = color_map[0].ch.green;
     *to++ = temp;
     // Normal dealing for other pixels
-    for (int i = 1; i < pixel_num; i++)
-    {
+    for (int i = 1; i < pixel_num; i++) {
         *to++ = color_map[i].ch.red;
         *to++ = color_map[i].ch.green;
         *to++ = color_map[i].ch.blue;
@@ -118,12 +48,10 @@ static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_
 }
 
 /* Rotate display and touch, when rotated screen in LVGL. Called when driver parameters are updated. */
-static void example_lvgl_update_cb(lv_disp_drv_t *drv)
-{
+static void example_lvgl_update_cb(lv_disp_drv_t *drv) {
     esp_lcd_panel_handle_t panel_handle = (esp_lcd_panel_handle_t)drv->user_data;
 
-    switch (drv->rotated)
-    {
+    switch (drv->rotated) {
     case LV_DISP_ROT_NONE:
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, false);
@@ -147,8 +75,7 @@ static void example_lvgl_update_cb(lv_disp_drv_t *drv)
     }
 }
 
-void example_lvgl_rounder_cb(struct _lv_disp_drv_t *disp_drv, lv_area_t *area)
-{
+void example_lvgl_rounder_cb(struct _lv_disp_drv_t *disp_drv, lv_area_t *area) {
     uint16_t x1 = area->x1;
     uint16_t x2 = area->x2;
 
@@ -164,8 +91,7 @@ void example_lvgl_rounder_cb(struct _lv_disp_drv_t *disp_drv, lv_area_t *area)
 }
 
 #if EXAMPLE_USE_TOUCH
-static void example_lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data)
-{
+static void example_lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     esp_lcd_touch_handle_t tp = (esp_lcd_touch_handle_t)drv->user_data;
     assert(tp);
 
@@ -176,67 +102,91 @@ static void example_lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data)
     esp_lcd_touch_read_data(tp);
     /* Read data from touch controller */
     bool tp_pressed = esp_lcd_touch_get_coordinates(tp, &tp_x, &tp_y, NULL, &tp_cnt, 1);
-    if (tp_pressed && tp_cnt > 0)
-    {
+    if (tp_pressed && tp_cnt > 0) {
         data->point.x = tp_x;
         data->point.y = tp_y;
         data->state = LV_INDEV_STATE_PRESSED;
         ESP_LOGD(TAG, "Touch position: %d,%d", tp_x, tp_y);
-    }
-    else
-    {
+    } else {
         data->state = LV_INDEV_STATE_RELEASED;
     }
 }
 #endif
 
-static void example_increase_lvgl_tick(void *arg)
-{
+static void example_increase_lvgl_tick(void *arg) {
     /* Tell LVGL how many milliseconds has elapsed */
     lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
 }
 
-static bool example_lvgl_lock(int timeout_ms)
-{
+static bool example_lvgl_lock(int timeout_ms) {
     assert(lvgl_mux && "bsp_display_start must be called first");
 
     const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
     return xSemaphoreTake(lvgl_mux, timeout_ticks) == pdTRUE;
 }
 
-static void example_lvgl_unlock(void)
-{
+static void example_lvgl_unlock(void) {
     assert(lvgl_mux && "bsp_display_start must be called first");
     xSemaphoreGive(lvgl_mux);
 }
 
-static void example_lvgl_port_task(void *arg)
-{
+static bool flag = false;
+
+static void toogle_screen(esp_lcd_panel_handle_t handle) {
+    if (flag) {
+        esp_lcd_panel_disp_on_off(handle, true);
+    } else {
+        esp_lcd_panel_disp_on_off(handle, false);
+    }
+    flag = !flag;
+}
+
+static void example_lvgl_port_task(void *arg) {
+    Utils::PanelParam *handle = (Utils::PanelParam *)arg;
     ESP_LOGI(TAG, "Starting LVGL task");
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
-    while (1)
-    {
+    while (1) {
         // Lock the mutex due to the LVGL APIs are not thread-safe
-        if (example_lvgl_lock(-1))
-        {
+        if (example_lvgl_lock(-1)) {
             task_delay_ms = lv_timer_handler();
             // Release the mutex
             example_lvgl_unlock();
         }
-        if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS)
-        {
-            task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
+
+        uint32_t pin_levels = 0;
+        esp_io_expander_get_level(handle->iohandle, IO_EXPANDER_PIN_NUM_4, &pin_levels);
+        if (pin_levels) {
+            while (true)
+            {
+                vTaskDelay(pdMS_TO_TICKS(50));
+                esp_io_expander_get_level(handle->iohandle, IO_EXPANDER_PIN_NUM_4, &pin_levels);
+                if(!pin_levels){
+                    toogle_screen(handle->panelhandle);
+                    break;
+                }
+            }
         }
-        else if (task_delay_ms < EXAMPLE_LVGL_TASK_MIN_DELAY_MS)
-        {
+
+        if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS) {
+            task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
+        } else if (task_delay_ms < EXAMPLE_LVGL_TASK_MIN_DELAY_MS) {
             task_delay_ms = EXAMPLE_LVGL_TASK_MIN_DELAY_MS;
         }
         vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
     }
 }
 
-extern "C" void app_main(void)
-{
+#define LCD_OPCODE_WRITE_CMD (0x02ULL)
+#define LCD_OPCODE_READ_CMD (0x03ULL)
+#define LCD_OPCODE_WRITE_COLOR (0x32ULL)
+static esp_err_t tx_param(esp_lcd_panel_io_handle_t io, int lcd_cmd, const void *param, size_t param_size) {
+    lcd_cmd &= 0xff;
+    lcd_cmd <<= 8;
+    lcd_cmd |= LCD_OPCODE_WRITE_CMD << 24;
+    return esp_lcd_panel_io_tx_param(io, lcd_cmd, param, param_size);
+}
+
+extern "C" void app_main(void) {
     esp_log_level_set("lcd_panel.io.i2c", ESP_LOG_NONE);
     esp_log_level_set("FT5x06", ESP_LOG_NONE);
     static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
@@ -244,13 +194,13 @@ extern "C" void app_main(void)
 
     ESP_LOGI(TAG, "Initialize I2C bus");
     i2c_config_t i2c_conf;
-        i2c_conf.mode = I2C_MODE_MASTER;
-        i2c_conf.sda_io_num = EXAMPLE_PIN_NUM_TOUCH_SDA;
-        i2c_conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-        i2c_conf.scl_io_num = EXAMPLE_PIN_NUM_TOUCH_SCL;
-        i2c_conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-        i2c_conf.clk_flags = 0;
-        i2c_conf.master.clk_speed = 200 * 1000;
+    i2c_conf.mode = I2C_MODE_MASTER;
+    i2c_conf.sda_io_num = EXAMPLE_PIN_NUM_TOUCH_SDA;
+    i2c_conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+    i2c_conf.scl_io_num = EXAMPLE_PIN_NUM_TOUCH_SCL;
+    i2c_conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    i2c_conf.clk_flags = 0;
+    i2c_conf.master.clk_speed = 200 * 1000;
 
     ESP_ERROR_CHECK(i2c_param_config(TOUCH_HOST, &i2c_conf));
     ESP_ERROR_CHECK(i2c_driver_install(TOUCH_HOST, i2c_conf.mode, 0, 0, 0));
@@ -261,6 +211,7 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(esp_io_expander_new_i2c_tca9554(TOUCH_HOST, ESP_IO_EXPANDER_I2C_TCA9554_ADDRESS_000, &io_expander));
 
     esp_io_expander_set_dir(io_expander, IO_EXPANDER_PIN_NUM_0 | IO_EXPANDER_PIN_NUM_1 | IO_EXPANDER_PIN_NUM_2, IO_EXPANDER_OUTPUT);
+    esp_io_expander_set_dir(io_expander, IO_EXPANDER_PIN_NUM_4, IO_EXPANDER_INPUT);
     esp_io_expander_set_level(io_expander, IO_EXPANDER_PIN_NUM_0, 0);
     esp_io_expander_set_level(io_expander, IO_EXPANDER_PIN_NUM_1, 0);
     esp_io_expander_set_level(io_expander, IO_EXPANDER_PIN_NUM_2, 0);
@@ -321,6 +272,9 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
     // user can flush pre-defined pattern to the screen before we turn on the screen or backlight
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
+
+    uint8_t *cmd = new uint8_t{128};
+    tx_param(io_handle, 0x51, cmd, sizeof(cmd));
 
 #if EXAMPLE_USE_TOUCH
 
@@ -398,18 +352,21 @@ extern "C" void app_main(void)
 
     lvgl_mux = xSemaphoreCreateMutex();
     assert(lvgl_mux);
-    xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
+    static Utils::PanelParam param;
+    param.iohandle = io_expander;
+    param.panelhandle = panel_handle;
+    xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, &param, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 
     ESP_LOGI(TAG, "Display LVGL demos");
     // Lock the mutex due to the LVGL APIs are not thread-safe
-    if (example_lvgl_lock(-1))
-    {
+    if (example_lvgl_lock(-1)) {
 
         // lv_demo_widgets(); /* A widgets example */
         lv_demo_music(); /* A modern, smartphone-like music player demo. */
         // lv_demo_stress();       /* A stress test for LVGL. */
         // lv_demo_benchmark(); /* A demo to measure the performance of LVGL or to compare different settings. */
-
+        auto screen = lv_scr_act();
+        lv_obj_set_style_bg_color(screen, LV_COLOR_MAKE(0, 0, 0), LV_STATE_DEFAULT);
         // Release the mutex
         example_lvgl_unlock();
     }
