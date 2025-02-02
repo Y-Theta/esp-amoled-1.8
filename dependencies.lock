@@ -5,6 +5,12 @@ dependencies:
       path: D:\Code\Self\esp\IDFChat\sample_project\components\esp_lcd_sh8601
       type: local
     version: 1.0.0
+  esp_rlottie:
+    dependencies: []
+    source:
+      path: D:\Code\Self\esp\IDFChat\sample_project\components\esp_rlottie
+      type: local
+    version: '*'
   espressif/cmake_utilities:
     component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
     dependencies:
@@ -56,20 +62,20 @@ dependencies:
       type: idf
     version: 5.3.2
   lvgl/lvgl:
-    component_hash: d7c1ac037ae6e85d94897f807d6e7ba0946a83e720074fc95a4f6241da9f9f53
     dependencies: []
     source:
-      registry_url: https://components.espressif.com/
-      type: service
+      path: D:\Code\Self\esp\IDFChat\sample_project\components\lvgl
+      type: local
     version: 8.4.0
 direct_dependencies:
 - esp_lcd_sh8601
+- esp_rlottie
 - espressif/cmake_utilities
 - espressif/esp_io_expander_tca9554
 - espressif/esp_lcd_touch
 - espressif/esp_lcd_touch_ft5x06
 - idf
 - lvgl/lvgl
-manifest_hash: 73d297b75a367c5296e4d374a0f8c4b79f7221d608e54c991bf3dd251ed9384f
+manifest_hash: 149594cf0ca727618bc30fb0823971497a0a8cc549d692a76988dfc17112959c
 target: esp32s3
 version: 2.0.0
