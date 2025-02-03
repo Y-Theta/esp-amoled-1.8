@@ -1,5 +1,12 @@
 #include "common.h"
 
+extern esp_err_t pmu_init();
+extern esp_err_t i2c_init(void);
+extern void pmu_isr_handler();
+
+static void pmu_hander_task(void *);
+static QueueHandle_t gpio_evt_queue = NULL;
+
 const char lottiedata[] = "{ \"v\": \"5.7.1\", \"fr\": 60, \"ip\": 0, \"op\": 240, \"w\": 256, \"h\": 256, \"nm\": \"合成 1\", \"ddd\": 0, \"assets\": [], \"layers\": [{ \"ddd\": 0, \"ind\": 1, \"ty\": 4, \"nm\": \"“图层 2/未标题-1”轮廓\", \"sr\": 1, \"ks\": { \"o\": { \"a\": 0, \"k\": 100, \"ix\": 11 }, \"r\": { \"a\": 0, \"k\": 0, \"ix\": 10 }, \"p\": { \"a\": 0, \"k\": [128.345, 160.5, 0], \"ix\": 2 }, \"a\": { \"a\": 0, \"k\": [15.5, 13.5, 0], \"ix\": 1 }, \"s\": { \"a\": 0, \"k\": [144.494, 144.494, 100], \"ix\": 6 } }, \"ao\": 0, \"shapes\": [{ \"ty\": \"gr\", \"it\": [{ \"ind\": 0, \"ty\": \"sh\", \"ix\": 1, \"ks\": { \"a\": 0, \"k\": { \"i\": [[0, 0], [0, 0], [0, 0]], \"o\": [[0, 0], [0, 0], [0, 0]], \"v\": [[0, -13], [-15.011, 13], [15.011, 13]], \"c\": true }, \"ix\": 2 }, \"nm\": \"路径 1\", \"mn\": \"ADBE Vector Shape - Group\", \"hd\": false }, { \"ty\": \"fl\", \"c\": { \"a\": 0, \"k\": [0.968627510819, 0.576470588235, 0.117647066303, 1], \"ix\": 4 }, \"o\": { \"a\": 0, \"k\": 100, \"ix\": 5 }, \"r\": 1, \"bm\": 0, \"nm\": \"填充 1\", \"mn\": \"ADBE Vector Graphic - Fill\", \"hd\": false }, { \"ty\": \"tr\", \"p\": { \"a\": 0, \"k\": [15.261, 13.25], \"ix\": 2 }, \"a\": { \"a\": 0, \"k\": [0, 0], \"ix\": 1 }, \"s\": { \"a\": 0, \"k\": [100, 100], \"ix\": 3 }, \"r\": { \"a\": 0, \"k\": 0, \"ix\": 6 }, \"o\": { \"a\": 0, \"k\": 100, \"ix\": 7 }, \"sk\": { \"a\": 0, \"k\": 0, \"ix\": 4 }, \"sa\": { \"a\": 0, \"k\": 0, \"ix\": 5 }, \"nm\": \"变换\" }], \"nm\": \"组 1\", \"np\": 2, \"cix\": 2, \"bm\": 0, \"ix\": 1, \"mn\": \"ADBE Vector Group\", \"hd\": false }], \"ip\": 0, \"op\": 240, \"st\": 0, \"bm\": 0 }, { \"ddd\": 0, \"ind\": 2, \"ty\": 4, \"nm\": \"“图层 3/未标题-1”轮廓\", \"sr\": 1, \"ks\": { \"o\": { \"a\": 0, \"k\": 100, \"ix\": 11 }, \"r\": { \"a\": 1, \"k\": [{ \"i\": { \"x\": [0.833], \"y\": [0.833] }, \"o\": { \"x\": [0.167], \"y\": [0.167] }, \"t\": 0, \"s\": [-12] }, { \"i\": { \"x\": [0.833], \"y\": [0.833] }, \"o\": { \"x\": [0.167], \"y\": [0.167] }, \"t\": 120, \"s\": [12] }, { \"t\": 240, \"s\": [-12] }], \"ix\": 10 }, \"p\": { \"a\": 0, \"k\": [128.572, 133.25, 0], \"ix\": 2 }, \"a\": { \"a\": 0, \"k\": [50, 5, 0], \"ix\": 1 }, \"s\": { \"a\": 0, \"k\": [248.223, 158.824, 100], \"ix\": 6 } }, \"ao\": 0, \"shapes\": [{ \"ty\": \"gr\", \"it\": [{ \"ind\": 0, \"ty\": \"sh\", \"ix\": 1, \"ks\": { \"a\": 0, \"k\": { \"i\": [[0, 0], [0, 0], [0, 0], [0, 0]], \"o\": [[0, 0], [0, 0], [0, 0], [0, 0]], \"v\": [[49.5, 4.5], [-49.5, 4.5], [-49.5, -4.5], [49.5, -4.5]], \"c\": true }, \"ix\": 2 }, \"nm\": \"路径 1\", \"mn\": \"ADBE Vector Shape - Group\", \"hd\": false }, { \"ty\": \"fl\", \"c\": { \"a\": 0, \"k\": [0.968627510819, 0.576470588235, 0.117647066303, 1], \"ix\": 4 }, \"o\": { \"a\": 0, \"k\": 100, \"ix\": 5 }, \"r\": 1, \"bm\": 0, \"nm\": \"填充 1\", \"mn\": \"ADBE Vector Graphic - Fill\", \"hd\": false }, { \"ty\": \"tr\", \"p\": { \"a\": 0, \"k\": [49.75, 4.75], \"ix\": 2 }, \"a\": { \"a\": 0, \"k\": [0, 0], \"ix\": 1 }, \"s\": { \"a\": 0, \"k\": [100, 100], \"ix\": 3 }, \"r\": { \"a\": 0, \"k\": 0, \"ix\": 6 }, \"o\": { \"a\": 0, \"k\": 100, \"ix\": 7 }, \"sk\": { \"a\": 0, \"k\": 0, \"ix\": 4 }, \"sa\": { \"a\": 0, \"k\": 0, \"ix\": 5 }, \"nm\": \"变换\" }], \"nm\": \"组 1\", \"np\": 2, \"cix\": 2, \"bm\": 0, \"ix\": 1, \"mn\": \"ADBE Vector Group\", \"hd\": false }], \"ip\": 0, \"op\": 240, \"st\": 0, \"bm\": 0 }, { \"ddd\": 0, \"ind\": 3, \"ty\": 4, \"nm\": \"“图层 1/未标题-1”轮廓\", \"parent\": 2, \"sr\": 1, \"ks\": { \"o\": { \"a\": 0, \"k\": 100, \"ix\": 11 }, \"r\": { \"a\": 0, \"k\": 18.377, \"ix\": 10 }, \"p\": { \"a\": 1, \"k\": [{ \"i\": { \"x\": 0.833, \"y\": 0.833 }, \"o\": { \"x\": 0.333, \"y\": 0 }, \"t\": 0, \"s\": [97.07, -6.544, 0], \"to\": [0, 0, 0], \"ti\": [15.244, -0.003, 0] }, { \"i\": { \"x\": 0.833, \"y\": 0.833 }, \"o\": { \"x\": 0.167, \"y\": 0.167 }, \"t\": 38, \"s\": [56.053, -6.539, 0], \"to\": [-4.708, 0.001, 0], \"ti\": [-1.196, -0.001, 0] }, { \"i\": { \"x\": 0.667, \"y\": 1 }, \"o\": { \"x\": 0.167, \"y\": 0.167 }, \"t\": 86, \"s\": [13.475, -6.537, 0], \"to\": [2.677, 0.002, 0], \"ti\": [0, 0.011, 0] }, { \"i\": { \"x\": 0.833, \"y\": 0.896 }, \"o\": { \"x\": 0.333, \"y\": 0 }, \"t\": 121, \"s\": [4.07, -6.544, 0], \"to\": [0, -0.016, 0], \"ti\": [-15.057, -0.002, 0] }, { \"i\": { \"x\": 0.833, \"y\": 0.858 }, \"o\": { \"x\": 0.167, \"y\": 0.406 }, \"t\": 180, \"s\": [77.823, -6.549, 0], \"to\": [14.211, 0.001, 0], \"ti\": [-3.826, 0, 0] }, { \"t\": 240, \"s\": [97.07, -6.544, 0] }], \"ix\": 2 }, \"a\": { \"a\": 0, \"k\": [11.5, 11.5, 0], \"ix\": 1 }, \"s\": { \"a\": 0, \"k\": [41.523, 61.087, 100], \"ix\": 6 } }, \"ao\": 0, \"shapes\": [{ \"ty\": \"gr\", \"it\": [{ \"ind\": 0, \"ty\": \"sh\", \"ix\": 1, \"ks\": { \"a\": 0, \"k\": { \"i\": [[0, -6.075], [6.075, 0], [0, 6.075], [-6.075, 0]], \"o\": [[0, 6.075], [-6.075, 0], [0, -6.075], [6.075, 0]], \"v\": [[11, 0], [0, 11], [-11, 0], [0, -11]], \"c\": true }, \"ix\": 2 }, \"nm\": \"路径 1\", \"mn\": \"ADBE Vector Shape - Group\", \"hd\": false }, { \"ty\": \"fl\", \"c\": { \"a\": 0, \"k\": [0.968627510819, 0.576470588235, 0.117647066303, 1], \"ix\": 4 }, \"o\": { \"a\": 0, \"k\": 100, \"ix\": 5 }, \"r\": 1, \"bm\": 0, \"nm\": \"填充 1\", \"mn\": \"ADBE Vector Graphic - Fill\", \"hd\": false }, { \"ty\": \"tr\", \"p\": { \"a\": 0, \"k\": [11.25, 11.25], \"ix\": 2 }, \"a\": { \"a\": 0, \"k\": [0, 0], \"ix\": 1 }, \"s\": { \"a\": 0, \"k\": [100, 100], \"ix\": 3 }, \"r\": { \"a\": 0, \"k\": 0, \"ix\": 6 }, \"o\": { \"a\": 0, \"k\": 100, \"ix\": 7 }, \"sk\": { \"a\": 0, \"k\": -15, \"ix\": 4 }, \"sa\": { \"a\": 0, \"k\": 0, \"ix\": 5 }, \"nm\": \"变换\" }], \"nm\": \"组 1\", \"np\": 2, \"cix\": 2, \"bm\": 0, \"ix\": 1, \"mn\": \"ADBE Vector Group\", \"hd\": false }], \"ip\": 0, \"op\": 240, \"st\": 0, \"bm\": 0 }], \"markers\": [] }";
 
 static const sh8601_lcd_init_cmd_t lcd_init_cmds[] = {
@@ -13,6 +20,104 @@ static const sh8601_lcd_init_cmd_t lcd_init_cmds[] = {
     {0x29, (uint8_t[]){0x00}, 0, 10},
     {0x51, (uint8_t[]){0xFF}, 1, 0},
 };
+
+/**
+ * @brief i2c master initialization
+ */
+esp_err_t i2c_init(i2c_config_t i2c_conf)
+{
+    i2c_param_config(I2C_MASTER_NUM, &i2c_conf);
+    return i2c_driver_install(I2C_MASTER_NUM, i2c_conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
+}
+
+static void IRAM_ATTR pmu_irq_handler(void *arg)
+{
+    uint32_t gpio_num = (uint32_t)arg;
+    xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
+}
+
+static void irq_init()
+{
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_NEGEDGE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = PMU_INPUT_PIN_SEL;
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    gpio_config(&io_conf);
+    gpio_set_intr_type(PMU_INPUT_PIN, GPIO_INTR_NEGEDGE);
+    // install gpio isr service
+    gpio_install_isr_service(0);
+    // hook isr handler for specific gpio pin
+    gpio_isr_handler_add(PMU_INPUT_PIN, pmu_irq_handler, (void *)PMU_INPUT_PIN);
+}
+
+int pmu_register_read(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
+{
+    if (len == 0)
+    {
+        return ESP_OK;
+    }
+    if (data == NULL)
+    {
+        return ESP_FAIL;
+    }
+    i2c_cmd_handle_t cmd;
+
+    cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (devAddr << 1) | WRITE_BIT, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, regAddr, ACK_CHECK_EN);
+    i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdTICKS_TO_MS(1000));
+    i2c_cmd_link_delete(cmd);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "PMU i2c_master_cmd_begin FAILED! > ");
+        return ESP_FAIL;
+    }
+    cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (devAddr << 1) | READ_BIT, ACK_CHECK_EN);
+    if (len > 1)
+    {
+        i2c_master_read(cmd, data, len - 1, ACK_VAL);
+    }
+    i2c_master_read_byte(cmd, &data[len - 1], NACK_VAL);
+    i2c_master_stop(cmd);
+    ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdTICKS_TO_MS(1000));
+    i2c_cmd_link_delete(cmd);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "PMU READ FAILED! > ");
+    }
+    return ret == ESP_OK ? 0 : -1;
+}
+
+
+/**
+ * @brief Write a byte to a pmu register
+ */
+int pmu_register_write_byte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
+{
+    if (data == NULL)
+    {
+        return ESP_FAIL;
+    }
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (devAddr << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, regAddr, ACK_CHECK_EN);
+    i2c_master_write(cmd, data, len, ACK_CHECK_EN);
+    i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdTICKS_TO_MS(1000));
+    i2c_cmd_link_delete(cmd);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "PMU WRITE FAILED! < ");
+    }
+    return ret == ESP_OK ? 0 : -1;
+}
 
 static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx) {
     lv_disp_drv_t *disp_driver = (lv_disp_drv_t *)user_ctx;
@@ -188,6 +293,15 @@ static esp_err_t tx_param(esp_lcd_panel_io_handle_t io, int lcd_cmd, const void 
     return esp_lcd_panel_io_tx_param(io, lcd_cmd, param, param_size);
 }
 
+static void pmu_hander_task(void *args)
+{
+    while (1)
+    {
+        pmu_isr_handler();
+        vTaskDelay(pdMS_TO_TICKS(10000));
+    }
+}
+
 extern "C" void app_main(void) {
     esp_log_level_set("lcd_panel.io.i2c", ESP_LOG_NONE);
     esp_log_level_set("FT5x06", ESP_LOG_NONE);
@@ -358,8 +472,19 @@ extern "C" void app_main(void) {
     param.iohandle = io_expander;
     param.panelhandle = panel_handle;
     xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, &param, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
+    // create a queue to handle gpio event from isr
+    gpio_evt_queue = xQueueCreate(5, sizeof(uint32_t));
 
-    ESP_LOGI(TAG, "Display LVGL demos");
+    // Register PMU interrupt pins
+    // irq_init();
+
+    // ESP_ERROR_CHECK(i2c_init(i2c_conf));
+
+    ESP_LOGI(TAG, "I2C initialized successfully");
+
+    ESP_ERROR_CHECK(pmu_init());
+
+    xTaskCreate(pmu_hander_task, "App/pwr", 4 * 1024, NULL, 2, NULL);
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (example_lvgl_lock(-1)) {
 
@@ -368,7 +493,7 @@ extern "C" void app_main(void) {
         // lv_demo_stress();       /* A stress test for LVGL. */
         // lv_demo_benchmark(); /* A demo to measure the performance of LVGL or to compare different settings. */
         auto screen = lv_scr_act();
-        lv_obj_t* lottie = lv_rlottie_create_from_raw(screen,240,240,lottiedata);
+        lv_obj_t* lottie = lv_rlottie_create_from_raw(screen,200,200,lottiedata);
         lv_obj_center(lottie);
         
         lv_obj_set_style_bg_color(screen, LV_COLOR_MAKE(0, 0, 0), LV_STATE_DEFAULT);

@@ -1,6 +1,6 @@
 file(GLOB_RECURSE HAL_SRCS
-    ./display/*.c
-    ./display/*.cpp
+    ./utils/*.c
+    ./utils/*.cpp
 )
 
 set(APP_LAYER_INCS

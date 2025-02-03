@@ -24,10 +24,28 @@
 static const char *TAG = "AIChat";
 static SemaphoreHandle_t lvgl_mux = NULL;
 
+#define PMU_INPUT_PIN (gpio_num_t) CONFIG_PMU_INTERRUPT_PIN /*!< axp power chip interrupt Pin*/
+#define PMU_INPUT_PIN_SEL (1ULL << PMU_INPUT_PIN)
+
+#define I2C_MASTER_NUM (i2c_port_t) I2C_NUM_0
+#define I2C_MASTER_FREQ_HZ CONFIG_I2C_MASTER_FREQUENCY /*!< I2C master clock frequency */
+#define I2C_MASTER_SDA_IO (gpio_num_t) CONFIG_PMU_I2C_SDA
+#define I2C_MASTER_SCL_IO (gpio_num_t) CONFIG_PMU_I2C_SCL
+
+#define I2C_MASTER_TX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_RX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_TIMEOUT_MS 1000
+
 #define LCD_HOST SPI2_HOST
 #define TOUCH_HOST I2C_NUM_0
 #define LCD_BIT_PER_PIXEL (16)
 
+#define WRITE_BIT I2C_MASTER_WRITE   /*!< I2C master write */
+#define READ_BIT I2C_MASTER_READ     /*!< I2C master read */
+#define ACK_CHECK_EN 0x1             /*!< I2C master will check ack from slave*/
+#define ACK_CHECK_DIS 0x0            /*!< I2C master will not check ack from slave */
+#define ACK_VAL (i2c_ack_type_t)0x0  /*!< I2C ack value */
+#define NACK_VAL (i2c_ack_type_t)0x1 /*!< I2C nack value */
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// Please update the following configuration according to your LCD spec //////////////////////////////
