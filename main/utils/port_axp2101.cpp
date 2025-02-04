@@ -198,3 +198,16 @@ void pmu_isr_handler()
     // Clear PMU Interrupt Status Register
     PMU.clearIrqStatus();
 }
+
+int pmu_get_bat_percent()
+{
+    if (PMU.isBatteryConnect())
+    {
+        return PMU.getBatteryPercent();
+    }
+    return 0;
+}
+
+bool pmu_get_bat_isCharging(){
+    return PMU.isCharging();
+}

@@ -18,7 +18,7 @@ dependencies:
     version: "*"
     public: true
 
-  lvgl/lvgl:
-    path: "../components/lvgl"
-    version: "*"
-    public: true
+  # lvgl/lvgl:
+  #   path: "../components/lvgl"
+  #   version: "*"
+  #   public: true

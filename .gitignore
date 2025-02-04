@@ -46,3 +46,5 @@ managed_components
 *.exe
 *.out
 *.app
+
+dependencies.lock
