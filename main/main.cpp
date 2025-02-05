@@ -1,10 +1,12 @@
 #include "common.h"
+#include "utils/powermanager.h"
 
 extern esp_err_t pmu_init();
 extern esp_err_t i2c_init(void);
-extern void pmu_isr_handler();
-extern int pmu_get_bat_percent();
-extern bool pmu_get_bat_isCharging();
+powermanager power_manager;
+
+static SemaphoreHandle_t lvgl_mux = NULL;
+esp_lcd_touch_handle_t tp = NULL;
 
 static void pmu_hander_task(void *);
 static QueueHandle_t gpio_evt_queue = NULL;
@@ -55,73 +57,6 @@ static void irq_init()
     gpio_install_isr_service(0);
     // hook isr handler for specific gpio pin
     gpio_isr_handler_add(PMU_INPUT_PIN, pmu_irq_handler, (void *)PMU_INPUT_PIN);
-}
-
-int pmu_register_read(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
-{
-    if (len == 0)
-    {
-        return ESP_OK;
-    }
-    if (data == NULL)
-    {
-        return ESP_FAIL;
-    }
-    i2c_cmd_handle_t cmd;
-
-    cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (devAddr << 1) | WRITE_BIT, ACK_CHECK_EN);
-    i2c_master_write_byte(cmd, regAddr, ACK_CHECK_EN);
-    i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdTICKS_TO_MS(1000));
-    i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK)
-    {
-        ESP_LOGE(TAG, "PMU i2c_master_cmd_begin FAILED! > ");
-        return ESP_FAIL;
-    }
-    cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (devAddr << 1) | READ_BIT, ACK_CHECK_EN);
-    if (len > 1)
-    {
-        i2c_master_read(cmd, data, len - 1, ACK_VAL);
-    }
-    i2c_master_read_byte(cmd, &data[len - 1], NACK_VAL);
-    i2c_master_stop(cmd);
-    ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdTICKS_TO_MS(1000));
-    i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK)
-    {
-        ESP_LOGE(TAG, "PMU READ FAILED! > ");
-    }
-    return ret == ESP_OK ? 0 : -1;
-}
-
-
-/**
- * @brief Write a byte to a pmu register
- */
-int pmu_register_write_byte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
-{
-    if (data == NULL)
-    {
-        return ESP_FAIL;
-    }
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (devAddr << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
-    i2c_master_write_byte(cmd, regAddr, ACK_CHECK_EN);
-    i2c_master_write(cmd, data, len, ACK_CHECK_EN);
-    i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdTICKS_TO_MS(1000));
-    i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK)
-    {
-        ESP_LOGE(TAG, "PMU WRITE FAILED! < ");
-    }
-    return ret == ESP_OK ? 0 : -1;
 }
 
 static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx) {
@@ -305,8 +240,8 @@ static void pmu_hander_task(void *args)
     {
         // pmu_isr_handler();
         if(batteryLabel){
-            auto p = pmu_get_bat_percent();
-            auto ischarge = pmu_get_bat_isCharging();
+            auto p = power_manager.get_percent();
+            auto ischarge = power_manager.is_charging();
             char post[5]; 
             snprintf(
                 post, sizeof(post), 
@@ -343,6 +278,8 @@ extern "C" void app_main(void) {
 
     ESP_ERROR_CHECK(i2c_param_config(TOUCH_HOST, &i2c_conf));
     ESP_ERROR_CHECK(i2c_driver_install(TOUCH_HOST, i2c_conf.mode, 0, 0, 0));
+
+    power_manager.init();
 
     esp_io_expander_handle_t io_expander = NULL;
     esp_io_expander_new_i2c_tca9554(TOUCH_HOST, ESP_IO_EXPANDER_I2C_TCA9554_ADDRESS_000, &io_expander);
@@ -496,17 +433,12 @@ extern "C" void app_main(void) {
     param.panelhandle = panel_handle;
     xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, &param, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
     // create a queue to handle gpio event from isr
-    gpio_evt_queue = xQueueCreate(5, sizeof(uint32_t));
-
     // Register PMU interrupt pins
     // irq_init();
 
     // ESP_ERROR_CHECK(i2c_init(i2c_conf));
 
     ESP_LOGI(TAG, "I2C initialized successfully");
-
-    ESP_ERROR_CHECK(pmu_init());
-
     xTaskCreate(pmu_hander_task, "App/pwr", 4 * 1024, NULL, 2, NULL);
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (example_lvgl_lock(-1)) {

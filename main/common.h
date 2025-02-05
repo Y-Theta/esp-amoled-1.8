@@ -1,5 +1,5 @@
 #pragma once
-
+#define USE_COMMON
 #include <stdio.h>
 
 #include "freertos/FreeRTOS.h"
@@ -22,7 +22,6 @@
 #include "esp_io_expander_tca9554.h"
 
 static const char *TAG = "AIChat";
-static SemaphoreHandle_t lvgl_mux = NULL;
 
 #define PMU_INPUT_PIN (gpio_num_t) CONFIG_PMU_INTERRUPT_PIN /*!< axp power chip interrupt Pin*/
 #define PMU_INPUT_PIN_SEL (1ULL << PMU_INPUT_PIN)
@@ -73,7 +72,6 @@ static SemaphoreHandle_t lvgl_mux = NULL;
 #define EXAMPLE_PIN_NUM_TOUCH_RST ((gpio_num_t)-1)
 #define EXAMPLE_PIN_NUM_TOUCH_INT (GPIO_NUM_21)
 
-esp_lcd_touch_handle_t tp = NULL;
 #endif
 
 #define EXAMPLE_LVGL_BUF_HEIGHT (EXAMPLE_LCD_V_RES / 4)
