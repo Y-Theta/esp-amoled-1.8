@@ -48,3 +48,4 @@ managed_components
 *.app
 
 dependencies.lock
+.vscode/settings.json

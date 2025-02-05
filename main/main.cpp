@@ -2,8 +2,6 @@
 #include "utils/dispmanager.h"
 #include "utils/powermanager.h"
 
-extern esp_err_t pmu_init();
-extern esp_err_t i2c_init(void);
 static powermanager *power_manager;
 static dispmanager *disp_manager;
 

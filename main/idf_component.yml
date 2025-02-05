@@ -8,15 +8,15 @@ dependencies:
     version: "*"
     public: true
   
-  esp_lcd_sh8601:
-    path: "../components/esp_lcd_sh8601"
-    version: "*"
-    public: true
+  # esp_lcd_sh8601:
+  #   path: "../components/esp_lcd_sh8601"
+  #   version: "*"
+  #   public: true
   
-  esp_rlottie:
-    path: "../components/esp_rlottie"
-    version: "*"
-    public: true
+  # esp_rlottie:
+  #   path: "../components/esp_rlottie"
+  #   version: "*"
+  #   public: true
 
   # lvgl/lvgl:
   #   path: "../components/lvgl"
