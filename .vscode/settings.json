@@ -1,11 +1,11 @@
 {
     "C_Cpp.intelliSenseEngine": "default",
-    "idf.espIdfPathWin": "C:\\Users\\YT\\esp\\v5.3.2\\esp-idf",
-    "idf.toolsPathWin": "d:\\Esp32\\tools",
+    "idf.espIdfPathWin": "d:\\CDEV\\Espressif\\v5.3.2\\esp-idf",
+    "idf.toolsPathWin": "C:\\Users\\MCKJ_YANGJM\\.espressif",
     "idf.openOcdConfigs": [
         "board/esp32s3-builtin.cfg"
     ],
-    "idf.portWin": "COM4",
+    "idf.portWin": "COM8",
     "idf.flashType": "UART",
     "files.associations": {
         "*.(xcfg|vstheme)": "xml",
@@ -15,7 +15,9 @@
         "*.sql": "sql",
         "*.xcs": "ini",
         "CMakeLists.txt": "cmake",
+        "*.c": "c",
         "*.h": "c",
-        "*.tpp": "cpp"
+        "*.tpp": "cpp",
+        "cstring": "cpp"
     }
 }
