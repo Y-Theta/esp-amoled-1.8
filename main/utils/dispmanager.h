@@ -13,6 +13,8 @@ private:
     lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
     lv_disp_drv_t disp_drv;      // contains callback functions
 
+    int btn_click_timeout = 1000; // btn click times count interval 
+
 protected:
     virtual void init_lvgl();
 
@@ -32,5 +34,7 @@ public:
     void framework_init();
 
     void set_brightness(int bright);
+    int pwr_click();
+    int boot_click();
 };
 

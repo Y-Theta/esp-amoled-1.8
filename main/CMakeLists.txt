@@ -3,6 +3,8 @@ option(ENABLE_LVGL_DEMOS "Enable LVGL demos" OFF)
 file(GLOB_RECURSE HAL_SRCS
     ./utils/*.c
     ./utils/*.cpp
+    ./app/*.c
+    ./app/*.cpp
 )
 
 set(APP_LAYER_INCS

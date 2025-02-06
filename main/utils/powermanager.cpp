@@ -1,22 +1,16 @@
 #include "powermanager.h"
 
-
-powermanager::powermanager(/* args */)
-{
+powermanager::powermanager(/* args */) {
 }
 
-powermanager::~powermanager()
-{
+powermanager::~powermanager() {
 }
 
-static int pmu_register_read(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
-{
-    if (len == 0)
-    {
+static int pmu_register_read(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len) {
+    if (len == 0) {
         return ESP_OK;
     }
-    if (data == NULL)
-    {
+    if (data == NULL) {
         return ESP_FAIL;
     }
     i2c_cmd_handle_t cmd;
@@ -28,24 +22,21 @@ static int pmu_register_read(uint8_t devAddr, uint8_t regAddr, uint8_t *data, ui
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdTICKS_TO_MS(1000));
     i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK)
-    {
+    if (ret != ESP_OK) {
         ESP_LOGE(TAG, "PMU i2c_master_cmd_begin FAILED! > ");
         return ESP_FAIL;
     }
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (devAddr << 1) | READ_BIT, ACK_CHECK_EN);
-    if (len > 1)
-    {
+    if (len > 1) {
         i2c_master_read(cmd, data, len - 1, ACK_VAL);
     }
     i2c_master_read_byte(cmd, &data[len - 1], NACK_VAL);
     i2c_master_stop(cmd);
     ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdTICKS_TO_MS(1000));
     i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK)
-    {
+    if (ret != ESP_OK) {
         ESP_LOGE(TAG, "PMU READ FAILED! > ");
     }
     return ret == ESP_OK ? 0 : -1;
@@ -54,10 +45,8 @@ static int pmu_register_read(uint8_t devAddr, uint8_t regAddr, uint8_t *data, ui
 /**
  * @brief Write a byte to a pmu register
  */
-static int pmu_register_write_byte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
-{
-    if (data == NULL)
-    {
+static int pmu_register_write_byte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len) {
+    if (data == NULL) {
         return ESP_FAIL;
     }
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -68,20 +57,16 @@ static int pmu_register_write_byte(uint8_t devAddr, uint8_t regAddr, uint8_t *da
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdTICKS_TO_MS(1000));
     i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK)
-    {
+    if (ret != ESP_OK) {
         ESP_LOGE(TAG, "PMU WRITE FAILED! < ");
     }
     return ret == ESP_OK ? 0 : -1;
 }
 
-esp_err_t powermanager::init(){
- if (PMU.begin(AXP2101_SLAVE_ADDRESS, pmu_register_read, pmu_register_write_byte))
-    {
+esp_err_t powermanager::init() {
+    if (PMU.begin(AXP2101_SLAVE_ADDRESS, pmu_register_read, pmu_register_write_byte)) {
         ESP_LOGI(TAG, "Init PMU SUCCESS!");
-    }
-    else
-    {
+    } else {
         ESP_LOGE(TAG, "Init PMU FAILED!");
         return ESP_FAIL;
     }
@@ -203,14 +188,28 @@ esp_err_t powermanager::init(){
     return ESP_OK;
 }
 
-int powermanager::get_percent(){
-  if (PMU.isBatteryConnect())
-    {
+static void pmu_hander_task(void *args) {
+    auto manager = (powermanager *)args;
+    char post[6];
+    while (1) {
+        if (manager->power_cb) {
+            manager->power_cb(manager);
+        }
+        vTaskDelay(pdMS_TO_TICKS(5000));
+    }
+}
+
+void powermanager::start_power_monitor() {
+    xTaskCreate(pmu_hander_task, "App/pwr", 4 * 1024, this, 2, &monitor_handle);
+}
+
+int powermanager::get_percent() {
+    if (PMU.isBatteryConnect()) {
         return PMU.getBatteryPercent();
     }
     return 0;
 }
 
-bool powermanager::is_charging(){
+bool powermanager::is_charging() {
     return PMU.isCharging();
 }

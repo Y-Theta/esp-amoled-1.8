@@ -20,6 +20,7 @@
 #include "esp_lcd_touch_ft5x06.h"
 
 #include "esp_io_expander_tca9554.h"
+#include "functional"
 
 static const char *TAG = "AIChat";
 
