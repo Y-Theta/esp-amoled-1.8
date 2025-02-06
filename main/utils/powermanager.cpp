@@ -190,9 +190,8 @@ esp_err_t powermanager::init() {
 
 static void pmu_hander_task(void *args) {
     auto manager = (powermanager *)args;
-    char post[6];
     while (1) {
-        if (manager->power_cb) {
+        if (manager->power_cb != NULL) {
             manager->power_cb(manager);
         }
         vTaskDelay(pdMS_TO_TICKS(5000));
@@ -200,7 +199,7 @@ static void pmu_hander_task(void *args) {
 }
 
 void powermanager::start_power_monitor() {
-    xTaskCreate(pmu_hander_task, "App/pwr", 4 * 1024, this, 2, &monitor_handle);
+    xTaskCreate(pmu_hander_task, "App/pwr", 4 * 1024, this, 2, NULL);
 }
 
 int powermanager::get_percent() {

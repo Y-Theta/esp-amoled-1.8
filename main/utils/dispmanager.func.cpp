@@ -30,7 +30,9 @@ int dispmanager::pwr_click() {
             }
         }
     }
+    return 0;
 }
 
 int dispmanager::boot_click() {
+    return 0;
 }
