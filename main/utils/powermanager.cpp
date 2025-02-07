@@ -148,7 +148,6 @@ esp_err_t powermanager::init() {
     PMU.enableBattVoltageMeasure();
     PMU.enableSystemVoltageMeasure();
     PMU.enableTemperatureMeasure();
-
     // It is necessary to disable the detection function of the TS pin on the board
     // without the battery temperature detection function, otherwise it will cause abnormal charging
     PMU.disableTSPinMeasure();
@@ -211,4 +210,28 @@ int powermanager::get_percent() {
 
 bool powermanager::is_charging() {
     return PMU.isCharging();
+}
+
+void powermanager::sleep(){
+    const esp_pm_config_t pm_config = {
+        .max_freq_mhz = 80,
+        .min_freq_mhz = 40,
+        #if CONFIG_FREERTOS_USE_TICKLESS_IDLE
+        .light_sleep_enable = true
+         #endif
+        };
+    ESP_ERROR_CHECK(esp_pm_configure(&pm_config));
+    PMU.enableSleep();
+}
+
+void powermanager::wakeup(){
+    const esp_pm_config_t pm_config = {
+        .max_freq_mhz = 240,
+        .min_freq_mhz = 40,
+        #if CONFIG_FREERTOS_USE_TICKLESS_IDLE
+        .light_sleep_enable = true
+         #endif
+        };
+    ESP_ERROR_CHECK(esp_pm_configure(&pm_config));
+    PMU.disableSleep();
 }

@@ -1,19 +1,18 @@
 #include "dispmanager.h"
 
-dispmanager::dispmanager(/* args */)
-{
+dispmanager::dispmanager(powermanager* manager, myapp* app) {
     io_expander_handle = NULL;
     screen_spi_handle = NULL;
     screen_handle = NULL;
     touch_handle = NULL;
+    power_manager = manager;
+    this->app = app;
 }
 
-dispmanager::~dispmanager()
-{
+dispmanager::~dispmanager() {
 }
 
-
-void dispmanager::init_i2c(){
+void dispmanager::init_i2c() {
     ESP_LOGI(TAG, "Initialize I2C bus");
     i2c_conf.mode = I2C_MODE_MASTER;
     i2c_conf.sda_io_num = EXAMPLE_PIN_NUM_TOUCH_SDA;
@@ -27,7 +26,7 @@ void dispmanager::init_i2c(){
     ESP_ERROR_CHECK(i2c_driver_install(TOUCH_HOST, i2c_conf.mode, 0, 0, 0));
 }
 
-void dispmanager::init_io_expander(){
+void dispmanager::init_io_expander() {
     ESP_LOGI(TAG, "Initialize IO Expander");
 
     esp_io_expander_new_i2c_tca9554(TOUCH_HOST, ESP_IO_EXPANDER_I2C_TCA9554_ADDRESS_000, &io_expander_handle);
@@ -43,6 +42,8 @@ void dispmanager::init_io_expander(){
     esp_io_expander_set_level(io_expander_handle, IO_EXPANDER_PIN_NUM_0, 1);
     esp_io_expander_set_level(io_expander_handle, IO_EXPANDER_PIN_NUM_1, 1);
     esp_io_expander_set_level(io_expander_handle, IO_EXPANDER_PIN_NUM_2, 1);
+
+    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
 }
 
 static const sh8601_lcd_init_cmd_t lcd_init_cmds[] = {
@@ -63,7 +64,7 @@ static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, 
     return false;
 }
 
-void dispmanager::init_screen(){
+void dispmanager::init_screen() {
 
     ESP_LOGI(TAG, "Initialize Screen");
     buscfg.sclk_io_num = EXAMPLE_PIN_NUM_LCD_PCLK;
@@ -109,8 +110,7 @@ void dispmanager::init_screen(){
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(screen_handle, true));
 }
 
-void dispmanager::init_touch(){
-    
+void dispmanager::init_touch() {
     ESP_LOGI(TAG, "Initialize Touch");
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
@@ -137,12 +137,71 @@ void dispmanager::init_touch(){
     ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_ft5x06(tp_io_handle, &tp_cfg, &touch_handle));
 }
 
-void dispmanager::framework_init(){
+static bool flag = false;
+static void toogle_screen(dispmanager* manager) {
+    if (flag) {
+        esp_lcd_panel_disp_on_off(manager->screen_handle, true);
+        // esp_lcd_touch_exit_sleep(manager->touch_handle);
+        manager->power_manager->wakeup();
+    } else {
+        esp_lcd_panel_disp_on_off(manager->screen_handle, false);
+        // esp_lcd_touch_enter_sleep(manager->touch_handle);
+        manager->power_manager->sleep();
+    }
+    flag = !flag;
+}
+
+static bool flag1 = false;
+static void toogle_cpu(dispmanager* manager) {
+    if (flag1) {
+        manager->app->pause_ani();
+    } else {
+        manager->app->resume_ani();
+    }
+    flag1 = !flag1;
+}
+
+static void task_btn(void *param) {
+    auto handle = (dispmanager*) param;
+    while (true)
+    {
+        uint32_t pin_levels = 0;
+        esp_io_expander_get_level(handle->io_expander_handle, IO_EXPANDER_PIN_NUM_4, &pin_levels);
+        if (pin_levels) {
+            while (true) {
+                vTaskDelay(pdMS_TO_TICKS(50));
+                esp_io_expander_get_level(handle->io_expander_handle, IO_EXPANDER_PIN_NUM_4, &pin_levels);
+                if (!pin_levels) {
+                    toogle_screen(handle);
+                    break;
+                }
+            }
+        }
+        
+        int level = gpio_get_level(GPIO_NUM_0);
+        if(!level){
+              while (true) {
+                vTaskDelay(pdMS_TO_TICKS(50));
+                level = gpio_get_level(GPIO_NUM_0);
+                if (level) {
+                    ESP_LOGI(TAG,"BOOT Click");
+                    toogle_cpu(handle);
+                    break;
+                }
+            }
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(200));
+    }
+}
+
+void dispmanager::framework_init() {
     init_lvgl();
+    xTaskCreate(task_btn, "app/btn", 3 * 1024, this, 2, NULL);
 }
 
 static void lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map) {
-    auto panel_handle = (dispmanager*)drv->user_data;
+    auto panel_handle = (dispmanager *)drv->user_data;
     const int offsetx1 = area->x1;
     const int offsetx2 = area->x2;
     const int offsety1 = area->y1;
@@ -171,7 +230,7 @@ static void lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t 
 }
 /* Rotate display and touch, when rotated screen in LVGL. Called when driver parameters are updated. */
 static void lvgl_update_cb(lv_disp_drv_t *drv) {
-    auto panel_handle = (dispmanager*)drv->user_data;
+    auto panel_handle = (dispmanager *)drv->user_data;
 
     switch (drv->rotated) {
     case LV_DISP_ROT_NONE:
@@ -214,7 +273,7 @@ static void lvgl_rounder_cb(struct _lv_disp_drv_t *disp_drv, lv_area_t *area) {
 
 #if EXAMPLE_USE_TOUCH
 static void lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data) {
-    auto tp = (dispmanager*)drv->user_data;
+    auto tp = (dispmanager *)drv->user_data;
     assert(tp);
 
     uint16_t tp_x;
@@ -240,17 +299,17 @@ static void increase_lvgl_tick(void *arg) {
     lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
 }
 
-void dispmanager::init_lvgl(){
+void dispmanager::init_lvgl() {
 
     ESP_LOGI(TAG, "Initialize LVGL library");
     lv_init();
 
-    void *buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
+    void *buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
     assert(buf1);
-    // void *buf2 = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
-    // assert(buf2);
+    void *buf2 = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
+    assert(buf2);
 
-    lv_disp_draw_buf_init(&disp_buf, buf1, NULL, EXAMPLE_LCD_H_RES * EXAMPLE_LVGL_BUF_HEIGHT);
+    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LVGL_BUF_HEIGHT);
 
     ESP_LOGI(TAG, "Register display driver to LVGL");
     lv_disp_drv_init(&disp_drv);

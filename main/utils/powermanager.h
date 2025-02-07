@@ -7,6 +7,7 @@
 #include <cstring>
 #include "sdkconfig.h"
 
+#ifndef POWER_MANAGER
 #define POWER_MANAGER
 
 class powermanager
@@ -26,4 +27,8 @@ public:
     bool is_charging();
 
     void start_power_monitor();
+    void sleep();
+    void wakeup();
 };
+
+#endif

@@ -2,6 +2,14 @@
 #include "common.h"
 #endif
 
+#ifndef POWER_MANAGER
+#include "powermanager.h"
+#endif
+
+#ifndef MY_APP
+#include "app/app.h"
+#endif
+
 class dispmanager
 {
 private:
@@ -19,9 +27,11 @@ protected:
     virtual void init_lvgl();
 
 public:
-    dispmanager(/* args */);
+    dispmanager(powermanager* manager,myapp* app);
     ~dispmanager();
 
+    powermanager* power_manager;
+    myapp* app;
     esp_io_expander_handle_t io_expander_handle;
     esp_lcd_panel_io_handle_t screen_spi_handle;
     esp_lcd_panel_handle_t screen_handle;

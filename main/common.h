@@ -13,6 +13,7 @@
 #include "esp_lcd_panel_ops.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "esp_pm.h"
 
 #include "lvgl.h"
 #include "lv_demos.h"
