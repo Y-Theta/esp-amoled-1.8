@@ -11,8 +11,13 @@ set(APP_LAYER_INCS
 
 )
 
+set(APP_FILES
+    ./resources/setting.png
+)
+
 idf_component_register(SRCS "main.cpp" ${HAL_SRCS}
-    INCLUDE_DIRS "." ${APP_LAYER_INCS})
+                       INCLUDE_DIRS "." ${APP_LAYER_INCS}
+                       EMBED_FILES setting.png)
 
 if(ENABLE_LVGL_DEMOS)
     set_source_files_properties(

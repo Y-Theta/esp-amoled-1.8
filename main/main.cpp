@@ -52,7 +52,7 @@ extern "C" void app_main(void) {
     mainapp = new myapp();
     power_manager = new powermanager();
     disp_manager = new dispmanager(power_manager,mainapp);
-
+    
     disp_manager->init_i2c();
     power_manager->init();
     power_manager->power_cb = on_power_update;

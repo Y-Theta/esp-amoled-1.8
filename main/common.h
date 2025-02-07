@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef USE_COMMON
 #define USE_COMMON
 #include <stdio.h>
 
@@ -83,6 +85,9 @@ static const char *TAG = "AIChat";
 #define EXAMPLE_LVGL_TASK_STACK_SIZE (64 * 1024)
 #define EXAMPLE_LVGL_TASK_PRIORITY 2
 
+extern const uint8_t setting_png_start[] asm("_binary_setting_png_start");
+extern const uint8_t setting_png_end[]   asm("_binary_setting_png_end");
+
 namespace Utils{
 
     struct PanelParam
@@ -91,3 +96,5 @@ namespace Utils{
         esp_lcd_panel_handle_t panelhandle;
     };
 }
+
+#endif

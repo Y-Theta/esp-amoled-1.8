@@ -13,6 +13,7 @@ class myapp {
 private:
     lv_obj_t *battery_label = NULL;
     lv_obj_t *lottie_ani = NULL;
+    lv_obj_t *setting_image = NULL;
     lv_style_t *battery_style = NULL;
 
 public:
