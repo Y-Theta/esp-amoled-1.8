@@ -22,19 +22,20 @@ if(ENABLE_LVGL_DEMOS)
 endif()
 
 set(DIR_RESOURCES "./resources")
-set(Drive_PNG_PNG   "${CMAKE_BINARY_DIR}/spiffs")
-file(MAKE_DIRECTORY ${Drive_PNG_PNG})
+set(SpiffDri      "${CMAKE_BINARY_DIR}/resources")
 
-file(GLOB_RECURSE SOURCE_FILES ${DIR_RESOURCES}/*.png)
+file(MAKE_DIRECTORY ${SpiffDri})
+
+file(GLOB_RECURSE SOURCE_FILES ${DIR_RESOURCES}/*)
 foreach(FILE ${SOURCE_FILES})
-    file(COPY ${FILE} DESTINATION ${Drive_PNG_PNG})
+    file(COPY ${FILE} DESTINATION ${SpiffDri})
 endforeach()
 
 spiffs_create_partition_assets(
-    spiffs
-    ${Drive_PNG_PNG}
+    resources
+    ${SpiffDri}
     FLASH_IN_PROJECT
-    MMAP_FILE_SUPPORT_FORMAT ".png" 
+    MMAP_FILE_SUPPORT_FORMAT ".png,.json" 
     MMAP_SUPPORT_SPNG
     MMAP_SPLIT_HEIGHT 16
 )

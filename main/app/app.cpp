@@ -1,9 +1,12 @@
 #include "app.h"
 
-const char lottiedata[] = "{\"v\":\"5.7.1\",\"fr\":60,\"ip\":0,\"op\":60,\"w\":256,\"h\":256,\"nm\":\"合成1\",\"ddd\":0,\"assets\":[],\"layers\":[{\"ddd\":0,\"ind\":1,\"ty\":4,\"nm\":\"“未标题-2”轮廓\",\"sr\":1,\"ks\":{\"o\":{\"a\":0,\"k\":100,\"ix\":11},\"r\":{\"a\":0,\"k\":0,\"ix\":10},\"p\":{\"a\":0,\"k\":[128,128,0],\"ix\":2},\"a\":{\"a\":0,\"k\":[128,128,0],\"ix\":1},\"s\":{\"a\":0,\"k\":[100,100,100],\"ix\":6}},\"ao\":0,\"shapes\":[{\"ty\":\"gr\",\"it\":[{\"ind\":0,\"ty\":\"sh\",\"ix\":1,\"ks\":{\"a\":1,\"k\":[{\"i\":{\"x\":0.833,\"y\":0.833},\"o\":{\"x\":0.167,\"y\":0.167},\"t\":0,\"s\":[{\"i\":[[7.732,0],[0,7.732],[-7.732,0],[0,-7.732]],\"o\":[[-7.732,0],[0,-7.732],[7.732,0],[0,7.732]],\"v\":[[40.249,9.567],[26.249,-4.433],[40.249,-18.433],[54.249,-4.433]],\"c\":true}]},{\"i\":{\"x\":0.833,\"y\":0.833},\"o\":{\"x\":0.167,\"y\":0.167},\"t\":30,\"s\":[{\"i\":[[7.732,0],[0,7.732],[-7.732,0],[0,-7.732]],\"o\":[[-7.732,0],[0,-7.732],[7.732,0],[0,7.732]],\"v\":[[27.499,0.067],[13.499,-13.933],[27.499,-27.933],[41.499,-13.933]],\"c\":true}]},{\"t\":60,\"s\":[{\"i\":[[7.732,0],[0,7.732],[-7.732,0],[0,-7.732]],\"o\":[[-7.732,0],[0,-7.732],[7.732,0],[0,7.732]],\"v\":[[40.499,8.317],[26.499,-5.683],[40.499,-19.683],[54.499,-5.683]],\"c\":true}]}],\"ix\":2},\"nm\":\"路径1\",\"mn\":\"ADBEVectorShape-Group\",\"hd\":false},{\"ind\":1,\"ty\":\"sh\",\"ix\":2,\"ks\":{\"a\":1,\"k\":[{\"i\":{\"x\":0.833,\"y\":0.833},\"o\":{\"x\":0.167,\"y\":0.167},\"t\":0,\"s\":[{\"i\":[[7.732,0],[0,7.732],[-7.732,0],[0,-7.732]],\"o\":[[-7.732,0],[0,-7.732],[7.732,0],[0,7.732]],\"v\":[[-36.752,9.567],[-50.752,-4.433],[-36.752,-18.433],[-22.752,-4.433]],\"c\":true}]},{\"i\":{\"x\":0.833,\"y\":0.833},\"o\":{\"x\":0.167,\"y\":0.167},\"t\":30,\"s\":[{\"i\":[[7.732,0],[0,7.732],[-7.732,0],[0,-7.732]],\"o\":[[-7.732,0],[0,-7.732],[7.732,0],[0,7.732]],\"v\":[[-37.002,4.817],[-50.752,-4.433],[-36.502,-7.433],[-22.752,-4.433]],\"c\":true}]},{\"t\":60,\"s\":[{\"i\":[[7.732,0],[0,7.732],[-7.732,0],[0,-7.732]],\"o\":[[-7.732,0],[0,-7.732],[7.732,0],[0,7.732]],\"v\":[[-36.752,8.817],[-50.752,-4.433],[-37.002,-18.683],[-22.752,-4.433]],\"c\":true}]}],\"ix\":2},\"nm\":\"路径2\",\"mn\":\"ADBEVectorShape-Group\",\"hd\":false},{\"ind\":2,\"ty\":\"sh\",\"ix\":3,\"ks\":{\"a\":0,\"k\":{\"i\":[[0,0],[7.793,0],[0,0],[0,-7.792],[0,0],[-16,0],[0,0],[0,87]],\"o\":[[0,-7.792],[0,0],[-7.793,0],[0,0],[-0.5,82],[0,0],[15,0],[0,0]],\"v\":[[96.501,-41.082],[82.331,-55.25],[-82.332,-55.25],[-96.501,-41.082],[-96.501,-31.75],[-24.001,48.25],[24.001,48.25],[97.001,-31.75]],\"c\":true},\"ix\":2},\"nm\":\"路径3\",\"mn\":\"ADBEVectorShape-Group\",\"hd\":false},{\"ty\":\"mm\",\"mm\":1,\"nm\":\"合并路径1\",\"mn\":\"ADBEVectorFilter-Merge\",\"hd\":false},{\"ty\":\"fl\",\"c\":{\"a\":0,\"k\":[1,1,1,1],\"ix\":4},\"o\":{\"a\":0,\"k\":100,\"ix\":5},\"r\":1,\"bm\":0,\"nm\":\"填充1\",\"mn\":\"ADBEVectorGraphic-Fill\",\"hd\":false},{\"ty\":\"tr\",\"p\":{\"a\":0,\"k\":[127.752,131.433],\"ix\":2},\"a\":{\"a\":0,\"k\":[0,0],\"ix\":1},\"s\":{\"a\":0,\"k\":[100,100],\"ix\":3},\"r\":{\"a\":0,\"k\":0,\"ix\":6},\"o\":{\"a\":0,\"k\":100,\"ix\":7},\"sk\":{\"a\":0,\"k\":0,\"ix\":4},\"sa\":{\"a\":0,\"k\":0,\"ix\":5},\"nm\":\"变换\"}],\"nm\":\"组1\",\"np\":5,\"cix\":2,\"bm\":0,\"ix\":1,\"mn\":\"ADBEVectorGroup\",\"hd\":false}],\"ip\":0,\"op\":60,\"st\":0,\"bm\":0}],\"markers\":[]}";
+mmap_assets_handle_t myapp::mmap_drive_handle = NULL;
+esp_lv_decoder_handle_t myapp::decoder_handle = NULL;
 
 myapp::myapp() {
-    init_mmapfile();
+    if (mmap_drive_handle == NULL) {
+        init_mmapfile();
+    }
 }
 
 myapp::~myapp() {
@@ -28,9 +31,9 @@ void myapp::update_battery_status(powermanager *manager) {
 
 esp_err_t myapp::init_mmapfile(void) {
     const mmap_assets_config_t asset_cfg = {
-        .partition_label = "spiffs",
-        .max_files = MMAP_SPIFFS_FILES,
-        .checksum = MMAP_SPIFFS_CHECKSUM,
+        .partition_label = "resources",
+        .max_files = MMAP_RESOURCES_FILES,
+        .checksum = MMAP_RESOURCES_CHECKSUM,
         .flags = {.mmap_enable = true}};
     esp_err_t ret = mmap_assets_new(&asset_cfg, &mmap_drive_handle);
     if (ret != ESP_OK) {
@@ -50,27 +53,50 @@ esp_err_t myapp::release_mmapfile(void) {
 }
 
 static void on_setting_tap(lv_event_t *event) {
-    
+    ESP_LOGI(TAG, "btn tap");
+}
+
+void myapp::create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MMAP_RESOURCES_LISTS image, lv_event_cb_t cb) {
+
+    static lv_style_t style;
+    lv_style_init(&style);
+    lv_style_set_bg_opa(&style, LV_OPA_0);
+    static lv_style_t style_pr;
+    lv_style_init(&style_pr);
+    lv_style_set_bg_opa(&style_pr, LV_OPA_0);
+
+    pointer = lv_btn_create(screen);
+    lv_obj_add_event_cb(pointer, cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_remove_style_all(pointer);
+    lv_obj_add_style(pointer, &style, 0);
+    lv_obj_add_style(pointer, &style_pr, LV_STATE_PRESSED);
+    lv_obj_set_size(pointer, 30, 30);
+    lv_obj_align(pointer, LV_ALIGN_TOP_LEFT, 24, 24);
+
+    auto lvimage = lv_img_create(pointer);
+    static lv_img_dsc_t img_wink_png;
+    img_wink_png.data_size = mmap_assets_get_size(mmap_drive_handle, image);
+    img_wink_png.data = mmap_assets_get_mem(mmap_drive_handle, image);
+    lv_img_set_src(lvimage, &img_wink_png);
+    lv_obj_align(lvimage, LV_ALIGN_CENTER, 0, 0);
+
+    // lv_obj_add_event_cb(pointer, on_setting_tap, LV_EVENT_PRESSED, NULL);
 }
 
 void myapp::init_ui_elements() {
     esp_lv_decoder_init(&decoder_handle);
 
     auto screen = lv_scr_act();
-    lottie_ani = lv_rlottie_create_from_raw(screen, 160, 160, lottiedata);
+    auto uint8_data = mmap_assets_get_mem(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
+    auto uint8_length = mmap_assets_get_size(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
+    char *utf8_str = new char[uint8_length + 1];
+    memcpy(utf8_str, uint8_data, uint8_length);
+    utf8_str[uint8_length] = '\0';
+    lottie_ani = lv_rlottie_create_from_raw(screen, 160, 160, utf8_str);
     lv_obj_center(lottie_ani);
+    delete[] utf8_str;
 
-    int count = mmap_assets_get_stored_files(mmap_drive_handle);
-    setting_image = lv_img_create(screen);
-    static lv_img_dsc_t img_wink_png;
-    auto name = mmap_assets_get_name(mmap_drive_handle, 0);
-    img_wink_png.data_size = mmap_assets_get_size(mmap_drive_handle, 0);
-    img_wink_png.data = mmap_assets_get_mem(mmap_drive_handle, 0);
-    ESP_LOGI(TAG, "%s,,%d", name, img_wink_png.data_size);
-    lv_img_set_src(setting_image, &img_wink_png);
-    lv_obj_align(setting_image, LV_ALIGN_TOP_LEFT, 20, 20);
-    lv_obj_add_event_cb(setting_image, on_setting_tap, LV_EVENT_PRESSED, NULL);
-
+    create_image_btn(setting_image, screen, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
     // esp_lv_decoder_deinit(decoder_handle);
     // test_mmap_drive_del();
 

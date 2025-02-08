@@ -13,9 +13,10 @@
 
 #include "esp_mmap_assets.h"
 
-#define MMAP_SPIFFS_FILES           1
-#define MMAP_SPIFFS_CHECKSUM        0xBF49
+#define MMAP_RESOURCES_FILES           2
+#define MMAP_RESOURCES_CHECKSUM        0xAD37
 
-enum MMAP_SPIFFS_LISTS {
-    MMAP_SPIFFS_SETTING_SPNG = 0,        /*!< setting.spng */
+enum MMAP_RESOURCES_LISTS {
+    MMAP_RESOURCES_DATA_JSON = 0,        /*!< data.json */
+    MMAP_RESOURCES_SETTING_SPNG = 1,        /*!< setting.spng */
 };
