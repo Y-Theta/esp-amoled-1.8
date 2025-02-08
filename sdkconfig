@@ -2389,6 +2389,12 @@ CONFIG_LV_USE_SNAPSHOT=y
 # CONFIG_LV_USE_DEMO_MUSIC is not set
 # end of Demos
 # end of LVGL configuration
+
+#
+# mmap file support format
+#
+CONFIG_MMAP_FILE_NAME_LENGTH=16
+# end of mmap file support format
 # end of Component config
 
 # CONFIG_IDF_EXPERIMENTAL_FEATURES is not set

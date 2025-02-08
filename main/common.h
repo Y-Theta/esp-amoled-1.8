@@ -85,8 +85,7 @@ static const char *TAG = "AIChat";
 #define EXAMPLE_LVGL_TASK_STACK_SIZE (64 * 1024)
 #define EXAMPLE_LVGL_TASK_PRIORITY 2
 
-extern const uint8_t setting_png_start[] asm("_binary_setting_png_start");
-extern const uint8_t setting_png_end[]   asm("_binary_setting_png_end");
+static SemaphoreHandle_t lvgl_mux = NULL;
 
 namespace Utils{
 

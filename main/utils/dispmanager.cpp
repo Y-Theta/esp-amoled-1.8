@@ -1,6 +1,6 @@
 #include "dispmanager.h"
 
-dispmanager::dispmanager(powermanager* manager, myapp* app) {
+dispmanager::dispmanager(powermanager *manager, myapp *app) {
     io_expander_handle = NULL;
     screen_spi_handle = NULL;
     screen_handle = NULL;
@@ -137,67 +137,9 @@ void dispmanager::init_touch() {
     ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_ft5x06(tp_io_handle, &tp_cfg, &touch_handle));
 }
 
-static bool flag = false;
-static void toogle_screen(dispmanager* manager) {
-    if (flag) {
-        esp_lcd_panel_disp_on_off(manager->screen_handle, true);
-        // esp_lcd_touch_exit_sleep(manager->touch_handle);
-        manager->power_manager->wakeup();
-    } else {
-        esp_lcd_panel_disp_on_off(manager->screen_handle, false);
-        // esp_lcd_touch_enter_sleep(manager->touch_handle);
-        manager->power_manager->sleep();
-    }
-    flag = !flag;
-}
-
-static bool flag1 = false;
-static void toogle_cpu(dispmanager* manager) {
-    if (flag1) {
-        manager->app->pause_ani();
-    } else {
-        manager->app->resume_ani();
-    }
-    flag1 = !flag1;
-}
-
-static void task_btn(void *param) {
-    auto handle = (dispmanager*) param;
-    while (true)
-    {
-        uint32_t pin_levels = 0;
-        esp_io_expander_get_level(handle->io_expander_handle, IO_EXPANDER_PIN_NUM_4, &pin_levels);
-        if (pin_levels) {
-            while (true) {
-                vTaskDelay(pdMS_TO_TICKS(50));
-                esp_io_expander_get_level(handle->io_expander_handle, IO_EXPANDER_PIN_NUM_4, &pin_levels);
-                if (!pin_levels) {
-                    toogle_screen(handle);
-                    break;
-                }
-            }
-        }
-        
-        int level = gpio_get_level(GPIO_NUM_0);
-        if(!level){
-              while (true) {
-                vTaskDelay(pdMS_TO_TICKS(50));
-                level = gpio_get_level(GPIO_NUM_0);
-                if (level) {
-                    ESP_LOGI(TAG,"BOOT Click");
-                    toogle_cpu(handle);
-                    break;
-                }
-            }
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(200));
-    }
-}
 
 void dispmanager::framework_init() {
     init_lvgl();
-    xTaskCreate(task_btn, "app/btn", 3 * 1024, this, 2, NULL);
 }
 
 static void lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map) {
