@@ -18,7 +18,7 @@
 #include "esp_pm.h"
 
 #include "lvgl.h"
-#include "lv_demos.h"
+#include "lv_lottie.h"
 #include "esp_lcd_sh8601.h"
 #include "esp_lcd_touch_ft5x06.h"
 
