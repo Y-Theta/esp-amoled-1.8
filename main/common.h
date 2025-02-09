@@ -18,7 +18,7 @@
 #include "esp_pm.h"
 
 #include "lvgl.h"
-#include "lv_demos.h"
+#include "esp_lvgl_port.h"
 #include "esp_lcd_sh8601.h"
 #include "esp_lcd_touch_ft5x06.h"
 
@@ -86,14 +86,4 @@ static const char *TAG = "AIChat";
 #define EXAMPLE_LVGL_TASK_PRIORITY 2
 
 static SemaphoreHandle_t lvgl_mux = NULL;
-
-namespace Utils{
-
-    struct PanelParam
-    {
-        esp_io_expander_handle_t iohandle;
-        esp_lcd_panel_handle_t panelhandle;
-    };
-}
-
 #endif

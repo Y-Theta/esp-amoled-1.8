@@ -8,7 +8,6 @@ file(GLOB_RECURSE HAL_SRCS
 )
 
 set(APP_LAYER_INCS
-
 )
 
 idf_component_register(SRCS "main.cpp" ${HAL_SRCS}
@@ -36,6 +35,4 @@ spiffs_create_partition_assets(
     ${SpiffDri}
     FLASH_IN_PROJECT
     MMAP_FILE_SUPPORT_FORMAT ".png,.json" 
-    MMAP_SUPPORT_SPNG
-    MMAP_SPLIT_HEIGHT 16
 )

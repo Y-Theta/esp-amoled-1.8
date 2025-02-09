@@ -1,7 +1,7 @@
 #include "app.h"
 
 mmap_assets_handle_t myapp::mmap_drive_handle = NULL;
-esp_lv_decoder_handle_t myapp::decoder_handle = NULL;
+// esp_lv_decoder_handle_t myapp::decoder_handle = NULL;
 
 myapp::myapp() {
     if (mmap_drive_handle == NULL) {
@@ -11,7 +11,7 @@ myapp::myapp() {
 
 myapp::~myapp() {
     release_mmapfile();
-    esp_lv_decoder_deinit(decoder_handle);
+    // esp_lv_decoder_deinit(decoder_handle);
 }
 
 void myapp::update_battery_status(powermanager *manager) {
@@ -57,7 +57,6 @@ static void on_setting_tap(lv_event_t *event) {
 }
 
 void myapp::create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MMAP_RESOURCES_LISTS image, lv_event_cb_t cb) {
-
     static lv_style_t style;
     lv_style_init(&style);
     lv_style_set_bg_opa(&style, LV_OPA_0);
@@ -73,32 +72,30 @@ void myapp::create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MM
     lv_obj_set_size(pointer, 30, 30);
     lv_obj_align(pointer, LV_ALIGN_TOP_LEFT, 24, 24);
 
-    auto lvimage = lv_img_create(pointer);
+    auto lvimage = lv_image_create(pointer);
     static lv_img_dsc_t img_wink_png;
     img_wink_png.data_size = mmap_assets_get_size(mmap_drive_handle, image);
     img_wink_png.data = mmap_assets_get_mem(mmap_drive_handle, image);
-    lv_img_set_src(lvimage, &img_wink_png);
+    lv_image_set_src(lvimage, &img_wink_png);
     lv_obj_align(lvimage, LV_ALIGN_CENTER, 0, 0);
 
     // lv_obj_add_event_cb(pointer, on_setting_tap, LV_EVENT_PRESSED, NULL);
 }
 
 void myapp::init_ui_elements() {
-    esp_lv_decoder_init(&decoder_handle);
+    // esp_lv_decoder_init(&decoder_handle);
+    lv_libpng_init();
+    auto screen = lv_screen_active();
+    // auto uint8_data = mmap_assets_get_mem(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
+    // auto uint8_length = mmap_assets_get_size(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
+    // char *utf8_str = new char[uint8_length + 1];
+    // memcpy(utf8_str, uint8_data, uint8_length);
+    // utf8_str[uint8_length] = '\0';
+    // lottie_ani = lv_rlottie_create_from_raw(screen, 160, 160, utf8_str);
+    // lv_obj_center(lottie_ani);
+    // delete[] utf8_str;
 
-    auto screen = lv_scr_act();
-    auto uint8_data = mmap_assets_get_mem(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
-    auto uint8_length = mmap_assets_get_size(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
-    char *utf8_str = new char[uint8_length + 1];
-    memcpy(utf8_str, uint8_data, uint8_length);
-    utf8_str[uint8_length] = '\0';
-    lottie_ani = lv_rlottie_create_from_raw(screen, 160, 160, utf8_str);
-    lv_obj_center(lottie_ani);
-    delete[] utf8_str;
-
-    create_image_btn(setting_image, screen, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
-    // esp_lv_decoder_deinit(decoder_handle);
-    // test_mmap_drive_del();
+    create_image_btn(setting_image, screen, this, MMAP_RESOURCES_SETTING_PNG, on_setting_tap);
 
     battery_label = lv_label_create(screen);
     static lv_style_t style_bat;
@@ -113,10 +110,10 @@ void myapp::init_ui_elements() {
 }
 
 void myapp::pause_ani() {
-    lv_rlottie_set_play_mode(lottie_ani, LV_RLOTTIE_CTRL_PAUSE);
+    // lv_rlottie_set_play_mode(lottie_ani, LV_RLOTTIE_CTRL_PAUSE);
 }
 
 void myapp::resume_ani() {
-    const lv_rlottie_ctrl_t item = (lv_rlottie_ctrl_t)(8);
-    lv_rlottie_set_play_mode(lottie_ani, item);
+    // const lv_rlottie_ctrl_t item = (lv_rlottie_ctrl_t)(8);
+    // lv_rlottie_set_play_mode(lottie_ani, item);
 }

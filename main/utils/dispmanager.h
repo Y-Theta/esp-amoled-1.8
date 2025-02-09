@@ -18,8 +18,8 @@ private:
     spi_bus_config_t buscfg;
     esp_lcd_panel_io_spi_config_t io_config;
 
-    lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
-    lv_disp_drv_t disp_drv;      // contains callback functions
+    // lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
+    // lv_disp_drv_t disp_drv;      // contains callback functions
 
     int btn_click_timeout = 1000; // btn click times count interval 
 
