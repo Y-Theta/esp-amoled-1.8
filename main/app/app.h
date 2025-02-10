@@ -21,10 +21,13 @@ private:
     static void create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MMAP_RESOURCES_LISTS image,lv_event_cb_t cb);
     
     lv_obj_t *battery_label = NULL;
+    lv_obj_t *battery_bg = NULL;
+
     lv_obj_t *lottie_ani = NULL;
     lv_obj_t *setting_image = NULL;
     lv_style_t *battery_style = NULL;
 
+    void create_battery_label(); 
 public:
     myapp();
     ~myapp();

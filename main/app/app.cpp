@@ -22,9 +22,9 @@ void myapp::update_battery_status(powermanager *manager) {
         snprintf(post, sizeof(post), "%d %%", p);
         lv_label_set_text(battery_label, post);
         if (ischarge) {
-            lv_obj_set_style_text_color(battery_label, lv_color_hex(0x00ff22), 0);
+            lv_obj_set_style_bg_color(battery_bg, lv_color_hex(0x00ff22), 0);
         } else {
-            lv_obj_set_style_text_color(battery_label, lv_color_hex(0xffffff), 0);
+            lv_obj_set_style_bg_color(battery_bg, lv_color_hex(0xffffff), 0);
         }
     }
 }
@@ -83,6 +83,32 @@ void myapp::create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MM
     // lv_obj_add_event_cb(pointer, on_setting_tap, LV_EVENT_PRESSED, NULL);
 }
 
+
+void myapp::create_battery_label(){
+    auto screen = lv_scr_act();
+
+    static lv_style_t style;
+    lv_style_init(&style);
+    lv_style_set_bg_opa(&style, LV_OPA_100);
+    lv_style_set_bg_color(&style, lv_color_hex(0xffffff));
+    lv_style_set_radius(&style, BAT_RADIUS);
+
+    battery_bg = lv_obj_create(screen);
+    lv_obj_remove_style_all(battery_bg);
+    lv_obj_add_style(battery_bg, &style, 0);
+    lv_obj_align(battery_bg, LV_ALIGN_TOP_RIGHT, -BTN_TOP_PADDING, BAT_PADDING);
+    lv_obj_set_size(battery_bg, BAT_WIDTH, BAT_HEIGHT);
+
+    battery_label = lv_label_create(battery_bg);
+    static lv_style_t style_bat;
+    lv_style_init(&style_bat);
+    lv_style_set_text_font(&style_bat, &lv_font_montserrat_20);
+    lv_style_set_text_color(&style_bat, lv_color_hex(0x000000));
+    lv_obj_add_style(battery_label, &style_bat, 0);
+    lv_label_set_text(battery_label, "000 %");
+    lv_obj_align(battery_label, LV_ALIGN_CENTER, 0, 0);
+}
+
 void myapp::init_ui_elements() {
     esp_lv_decoder_init(&decoder_handle);
 
@@ -91,24 +117,14 @@ void myapp::init_ui_elements() {
     int uint8_length = mmap_assets_get_size(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
     lottie_ani = lv_lottie_create(lv_scr_act());
     lv_obj_center(lottie_ani);
-    static void *fb = heap_caps_malloc(160 * 160 * 4, MALLOC_CAP_SPIRAM);
-    lv_lottie_set_buffer(lottie_ani, 160, 160, fb);
+    static void *fb = heap_caps_malloc(LOTTIE_SIZE * LOTTIE_SIZE * 4, MALLOC_CAP_SPIRAM);
+    lv_lottie_set_buffer(lottie_ani, LOTTIE_SIZE, LOTTIE_SIZE, fb);
     lv_lottie_set_src_data(lottie_ani, uint8_data, uint8_length);
-    auto lottie_ = lv_lottie_get_anim(lottie_ani);
 
     create_image_btn(setting_image, screen, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
     // esp_lv_decoder_deinit(decoder_handle);
     // test_mmap_drive_del();
-
-    battery_label = lv_label_create(screen);
-    static lv_style_t style_bat;
-    lv_style_init(&style_bat);
-    lv_style_set_text_font(&style_bat, &lv_font_montserrat_14);
-    lv_style_set_text_color(&style_bat, lv_color_hex(0xffffff));
-    lv_obj_add_style(battery_label, &style_bat, 0);
-    lv_label_set_text(battery_label, "BAT");
-    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -BTN_TOP_PADDING, BTN_TOP_PADDING);
-
+    create_battery_label();
     lv_obj_set_style_bg_color(screen, LV_COLOR_MAKE(0, 0, 0), LV_STATE_DEFAULT);
 }
 
@@ -118,6 +134,10 @@ void myapp::pause_ani() {
 }
 
 void myapp::resume_ani() {
+    auto lottie_ = lv_lottie_get_anim(lottie_ani);
+    uint32_t a, b;
+    lv_lottie_get_segment(lottie_ani, &a, &b);
+    ESP_LOGI(TAG, "%d  %d", b - a, lottie_->current_value);
     // const lv_rlottie_ctrl_t item = (lv_rlottie_ctrl_t)(8);
     // lv_rlottie_set_play_mode(lottie_ani, item);
 }
