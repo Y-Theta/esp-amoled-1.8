@@ -70,8 +70,8 @@ void myapp::create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MM
     lv_obj_remove_style_all(pointer);
     lv_obj_add_style(pointer, &style, 0);
     lv_obj_add_style(pointer, &style_pr, LV_STATE_PRESSED);
-    lv_obj_set_size(pointer, 30, 30);
-    lv_obj_align(pointer, LV_ALIGN_TOP_LEFT, 24, 24);
+    lv_obj_set_size(pointer, BTN_MAIN_SIZE, BTN_MAIN_SIZE);
+    lv_obj_align(pointer, LV_ALIGN_TOP_LEFT, BTN_TOP_PADDING, BTN_TOP_PADDING);
 
     auto lvimage = lv_img_create(pointer);
     static lv_img_dsc_t img_wink_png;
@@ -83,12 +83,11 @@ void myapp::create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MM
     // lv_obj_add_event_cb(pointer, on_setting_tap, LV_EVENT_PRESSED, NULL);
 }
 
-
 void myapp::init_ui_elements() {
     esp_lv_decoder_init(&decoder_handle);
 
     auto screen = lv_scr_act();
-    const uint8_t* uint8_data = mmap_assets_get_mem(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
+    const uint8_t *uint8_data = mmap_assets_get_mem(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
     int uint8_length = mmap_assets_get_size(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
     lottie_ani = lv_lottie_create(lv_scr_act());
     lv_obj_center(lottie_ani);
@@ -107,12 +106,13 @@ void myapp::init_ui_elements() {
     lv_style_set_text_color(&style_bat, lv_color_hex(0xffffff));
     lv_obj_add_style(battery_label, &style_bat, 0);
     lv_label_set_text(battery_label, "BAT");
-    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -20, 20);
+    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -BTN_TOP_PADDING, BTN_TOP_PADDING);
 
     lv_obj_set_style_bg_color(screen, LV_COLOR_MAKE(0, 0, 0), LV_STATE_DEFAULT);
 }
 
 void myapp::pause_ani() {
+    ESP_LOGI(TAG, "free heap: %d,\nfree internal: %d ", esp_get_free_heap_size(), esp_get_free_internal_heap_size());
     // lv_rlottie_set_play_mode(lottie_ani, LV_RLOTTIE_CTRL_PAUSE);
 }
 

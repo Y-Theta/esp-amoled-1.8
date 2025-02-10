@@ -111,6 +111,9 @@ extern "C" void app_main(void) {
     esp_log_level_set("lcd_panel.io.i2c", ESP_LOG_NONE);
     esp_log_level_set("FT5x06", ESP_LOG_NONE);
 
+    vTaskDelay(pdMS_TO_TICKS(4000));
+    ESP_LOGI(TAG, "free heap: %d,\nfree internal: %d ", esp_get_free_heap_size(), esp_get_free_internal_heap_size());
+    
     mainapp = new myapp();
     power_manager = new powermanager();
     disp_manager = new dispmanager(power_manager, mainapp);

@@ -14,7 +14,7 @@
 #include "esp_mmap_assets.h"
 
 #define MMAP_RESOURCES_FILES           2
-#define MMAP_RESOURCES_CHECKSUM        0x03B5
+#define MMAP_RESOURCES_CHECKSUM        0xDA55
 
 enum MMAP_RESOURCES_LISTS {
     MMAP_RESOURCES_DATA_JSON = 0,        /*!< data.json */
