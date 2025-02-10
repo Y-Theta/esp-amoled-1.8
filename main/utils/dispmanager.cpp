@@ -15,9 +15,9 @@ dispmanager::~dispmanager() {
 void dispmanager::init_i2c() {
     ESP_LOGI(TAG, "Initialize I2C bus");
     i2c_conf.mode = I2C_MODE_MASTER;
-    i2c_conf.sda_io_num = EXAMPLE_PIN_NUM_TOUCH_SDA;
+    i2c_conf.sda_io_num = PIN_NUM_TOUCH_SDA;
     i2c_conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    i2c_conf.scl_io_num = EXAMPLE_PIN_NUM_TOUCH_SCL;
+    i2c_conf.scl_io_num = PIN_NUM_TOUCH_SCL;
     i2c_conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
     i2c_conf.clk_flags = 0;
     i2c_conf.master.clk_speed = 200 * 1000;
@@ -67,11 +67,11 @@ static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, 
 void dispmanager::init_screen() {
 
     ESP_LOGI(TAG, "Initialize Screen");
-    buscfg.sclk_io_num = EXAMPLE_PIN_NUM_LCD_PCLK;
-    buscfg.data0_io_num = EXAMPLE_PIN_NUM_LCD_DATA0;
-    buscfg.data1_io_num = EXAMPLE_PIN_NUM_LCD_DATA1;
-    buscfg.data2_io_num = EXAMPLE_PIN_NUM_LCD_DATA2;
-    buscfg.data3_io_num = EXAMPLE_PIN_NUM_LCD_DATA3;
+    buscfg.sclk_io_num = PIN_NUM_LCD_PCLK;
+    buscfg.data0_io_num = PIN_NUM_LCD_DATA0;
+    buscfg.data1_io_num = PIN_NUM_LCD_DATA1;
+    buscfg.data2_io_num = PIN_NUM_LCD_DATA2;
+    buscfg.data3_io_num = PIN_NUM_LCD_DATA3;
     buscfg.data4_io_num = -1;
     buscfg.data5_io_num = -1;
     buscfg.data6_io_num = -1;
@@ -79,12 +79,12 @@ void dispmanager::init_screen() {
     buscfg.isr_cpu_id = ESP_INTR_CPU_AFFINITY_AUTO;
     buscfg.intr_flags = 0;
     buscfg.flags = 0;
-    buscfg.max_transfer_sz = EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES * LCD_BIT_PER_PIXEL / 8;
+    buscfg.max_transfer_sz = SCREEN_H_RES * SCREEN_V_RES * LCD_BIT_PER_PIXEL / 8;
     ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO));
 
     ESP_LOGI(TAG, "Install panel IO");
     // esp_lcd_panel_io_handle_t io_handle = NULL;
-    io_config = SH8601_PANEL_IO_QSPI_CONFIG(EXAMPLE_PIN_NUM_LCD_CS, example_notify_lvgl_flush_ready, &disp_drv);
+    io_config = SH8601_PANEL_IO_QSPI_CONFIG(PIN_NUM_LCD_CS, example_notify_lvgl_flush_ready, &disp_drv);
     sh8601_vendor_config_t vendor_config = {
         .init_cmds = lcd_init_cmds,
         .init_cmds_size = sizeof(lcd_init_cmds) / sizeof(lcd_init_cmds[0]),
@@ -97,7 +97,7 @@ void dispmanager::init_screen() {
 
     // esp_lcd_panel_handle_t panel_handle = NULL;
     const esp_lcd_panel_dev_config_t panel_config = {
-        .reset_gpio_num = EXAMPLE_PIN_NUM_LCD_RST,
+        .reset_gpio_num = PIN_NUM_LCD_RST,
         .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
         .bits_per_pixel = LCD_BIT_PER_PIXEL,
         .vendor_config = &vendor_config,
@@ -118,10 +118,10 @@ void dispmanager::init_touch() {
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)TOUCH_HOST, &tp_io_config, &tp_io_handle));
 
     const esp_lcd_touch_config_t tp_cfg = {
-        .x_max = EXAMPLE_LCD_H_RES,
-        .y_max = EXAMPLE_LCD_V_RES,
-        .rst_gpio_num = EXAMPLE_PIN_NUM_TOUCH_RST,
-        .int_gpio_num = EXAMPLE_PIN_NUM_TOUCH_INT,
+        .x_max = SCREEN_H_RES,
+        .y_max = SCREEN_V_RES,
+        .rst_gpio_num = PIN_NUM_TOUCH_RST,
+        .int_gpio_num = PIN_NUM_TOUCH_INT,
         .levels = {
             .reset = 0,
             .interrupt = 0,
@@ -238,7 +238,7 @@ static void lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data) {
 
 static void increase_lvgl_tick(void *arg) {
     /* Tell LVGL how many milliseconds has elapsed */
-    lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
+    lv_tick_inc(LVGL_TICK_PERIOD_MS);
 }
 
 void dispmanager::init_lvgl() {
@@ -246,17 +246,17 @@ void dispmanager::init_lvgl() {
     ESP_LOGI(TAG, "Initialize LVGL library");
     lv_init();
 
-    void *buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
+    void *buf1 = heap_caps_malloc(SCREEN_H_RES * LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
     assert(buf1);
-    // void *buf2 = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
+    // void *buf2 = heap_caps_malloc(SCREEN_H_RES * LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
     // assert(buf2);
 
-    lv_disp_draw_buf_init(&disp_buf, buf1, NULL, EXAMPLE_LCD_H_RES * EXAMPLE_LVGL_BUF_HEIGHT);
+    lv_disp_draw_buf_init(&disp_buf, buf1, NULL, SCREEN_H_RES * LVGL_BUF_HEIGHT);
 
     ESP_LOGI(TAG, "Register display driver to LVGL");
     lv_disp_drv_init(&disp_drv);
-    disp_drv.hor_res = EXAMPLE_LCD_H_RES;
-    disp_drv.ver_res = EXAMPLE_LCD_V_RES;
+    disp_drv.hor_res = SCREEN_H_RES;
+    disp_drv.ver_res = SCREEN_V_RES;
     disp_drv.flush_cb = lvgl_flush_cb;
     disp_drv.rounder_cb = lvgl_rounder_cb;
     disp_drv.drv_update_cb = lvgl_update_cb;
@@ -271,7 +271,7 @@ void dispmanager::init_lvgl() {
         .name = "lvgl_tick"};
     esp_timer_handle_t lvgl_tick_timer = NULL;
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000));
 
 #if EXAMPLE_USE_TOUCH
     static lv_indev_drv_t indev_drv; // Input device driver (Touch)

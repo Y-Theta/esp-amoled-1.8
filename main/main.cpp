@@ -21,7 +21,7 @@ static void example_lvgl_unlock(void) {
 static void example_lvgl_port_task(void *arg) {
     auto handle = (dispmanager *)arg;
     ESP_LOGI(TAG, "Starting LVGL task");
-    uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
+    uint32_t task_delay_ms = LVGL_TASK_MAX_DELAY_MS;
     while (1) {
         // Lock the mutex due to the LVGL APIs are not thread-safe
         if (example_lvgl_lock(-1)) {
@@ -30,10 +30,10 @@ static void example_lvgl_port_task(void *arg) {
             example_lvgl_unlock();
         }
 
-        if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS) {
-            task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
-        } else if (task_delay_ms < EXAMPLE_LVGL_TASK_MIN_DELAY_MS) {
-            task_delay_ms = EXAMPLE_LVGL_TASK_MIN_DELAY_MS;
+        if (task_delay_ms > LVGL_TASK_MAX_DELAY_MS) {
+            task_delay_ms = LVGL_TASK_MAX_DELAY_MS;
+        } else if (task_delay_ms < LVGL_TASK_MIN_DELAY_MS) {
+            task_delay_ms = LVGL_TASK_MIN_DELAY_MS;
         }
         vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
     }
@@ -129,7 +129,7 @@ extern "C" void app_main(void) {
     power_manager->start_power_monitor();
 
     xTaskCreatePinnedToCore(task_btn, "app/btn", 5 * 1024, disp_manager, 2, NULL, 1);
-    xTaskCreatePinnedToCore(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, disp_manager, EXAMPLE_LVGL_TASK_PRIORITY, NULL, 1);
+    xTaskCreatePinnedToCore(example_lvgl_port_task, "LVGL", LVGL_TASK_STACK_SIZE, disp_manager, LVGL_TASK_PRIORITY, NULL, 1);
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (example_lvgl_lock(-1)) {
         mainapp->init_ui_elements();
