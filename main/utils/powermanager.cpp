@@ -198,7 +198,7 @@ static void pmu_hander_task(void *args) {
 }
 
 void powermanager::start_power_monitor() {
-    xTaskCreatePinnedToCore(pmu_hander_task, "App/pwr", 8 * 1024, this, 2, NULL, 1);
+    xTaskCreatePinnedToCore(pmu_hander_task, "App/pwr", 6 * 1024, this, 2, NULL, 1);
 }
 
 int powermanager::get_percent() {

@@ -2,9 +2,11 @@
 #include "common.h"
 #include "utils/dispmanager.h"
 #include "utils/powermanager.h"
+#include "utils/wifimanager.h"
 
 static powermanager *power_manager;
 static dispmanager *disp_manager;
+static wifimanager *wifi_manager;
 static myapp *mainapp;
 
 static bool example_lvgl_lock(int timeout_ms) {
@@ -46,28 +48,27 @@ static void on_power_update(powermanager *manager) {
     }
 }
 
-
 static bool flag = false;
 static void toogle_screen(dispmanager *manager) {
     if (flag) {
         esp_lcd_panel_disp_on_off(manager->screen_handle, true);
         // esp_lcd_touch_exit_sleep(manager->touch_handle);
-        manager->power_manager->wakeup();
+        power_manager->wakeup();
     } else {
         esp_lcd_panel_disp_on_off(manager->screen_handle, false);
         // esp_lcd_touch_enter_sleep(manager->touch_handle);
-        manager->power_manager->sleep();
+        power_manager->sleep();
     }
     flag = !flag;
 }
 
 static bool flag1 = false;
-static void toogle_cpu(dispmanager *manager) {
+static void toogle_cpu() {
     if (xSemaphoreTake(lvgl_mux, 10) == pdTRUE) {
         if (flag1) {
-            manager->app->pause_ani();
+            mainapp->pause_ani();
         } else {
-            manager->app->resume_ani();
+            mainapp->resume_ani();
         }
         flag1 = !flag1;
         xSemaphoreGive(lvgl_mux);
@@ -97,7 +98,7 @@ static void task_btn(void *param) {
                 level = gpio_get_level(GPIO_NUM_0);
                 if (level) {
                     ESP_LOGI(TAG, "BOOT Click");
-                    toogle_cpu(handle);
+                    toogle_cpu();
                     break;
                 }
             }
@@ -113,20 +114,21 @@ extern "C" void app_main(void) {
 
     vTaskDelay(pdMS_TO_TICKS(4000));
     ESP_LOGI(TAG, "free heap: %d,\nfree internal: %d ", esp_get_free_heap_size(), esp_get_free_internal_heap_size());
-    
+
     mainapp = new myapp();
     power_manager = new powermanager();
-    disp_manager = new dispmanager(power_manager, mainapp);
+    wifi_manager = new wifimanager();
+    disp_manager = new dispmanager();
 
     lvgl_mux = xSemaphoreCreateMutex();
     assert(lvgl_mux);
-
+    
     disp_manager->init_i2c();
     power_manager->init();
     power_manager->power_cb = on_power_update;
     disp_manager->init_io_expander();
     disp_manager->init_screen();
-    disp_manager->set_brightness(128);
+    disp_manager->set_brightness(64);
     disp_manager->init_touch();
     disp_manager->framework_init();
     power_manager->start_power_monitor();

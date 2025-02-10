@@ -94,6 +94,7 @@ void myapp::init_ui_elements() {
     static void *fb = heap_caps_malloc(160 * 160 * 4, MALLOC_CAP_SPIRAM);
     lv_lottie_set_buffer(lottie_ani, 160, 160, fb);
     lv_lottie_set_src_data(lottie_ani, uint8_data, uint8_length);
+    auto lottie_ = lv_lottie_get_anim(lottie_ani);
 
     create_image_btn(setting_image, screen, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
     // esp_lv_decoder_deinit(decoder_handle);

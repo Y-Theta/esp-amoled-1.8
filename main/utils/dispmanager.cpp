@@ -1,12 +1,10 @@
 #include "dispmanager.h"
 
-dispmanager::dispmanager(powermanager *manager, myapp *app) {
+dispmanager::dispmanager() {
     io_expander_handle = NULL;
     screen_spi_handle = NULL;
     screen_handle = NULL;
     touch_handle = NULL;
-    power_manager = manager;
-    this->app = app;
 }
 
 dispmanager::~dispmanager() {
@@ -246,7 +244,7 @@ void dispmanager::init_lvgl() {
     ESP_LOGI(TAG, "Initialize LVGL library");
     lv_init();
 
-    void *buf1 = heap_caps_malloc(SCREEN_H_RES * LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
+    void *buf1 = heap_caps_malloc(SCREEN_H_RES * LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
     assert(buf1);
     // void *buf2 = heap_caps_malloc(SCREEN_H_RES * LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
     // assert(buf2);

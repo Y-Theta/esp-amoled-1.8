@@ -21,6 +21,10 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_pm.h"
+#include "esp_wifi.h"
+
+#include "nvs_flash.h"
+#include "esp_http_server.h"
 
 #include "lvgl.h"
 #include "lv_lottie.h"
@@ -84,9 +88,9 @@ static const char *TAG = "AIChat";
 
 #define LVGL_BUF_HEIGHT (SCREEN_V_RES / 4)
 #define LVGL_TICK_PERIOD_MS 2
-#define LVGL_TASK_MAX_DELAY_MS 500
+#define LVGL_TASK_MAX_DELAY_MS 384
 #define LVGL_TASK_MIN_DELAY_MS 25
-#define LVGL_TASK_STACK_SIZE (64 * 1024)
+#define LVGL_TASK_STACK_SIZE (48 * 1024)
 #define LVGL_TASK_PRIORITY 2
 
 static SemaphoreHandle_t lvgl_mux = NULL;

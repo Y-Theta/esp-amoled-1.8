@@ -27,11 +27,9 @@ protected:
     virtual void init_lvgl();
 
 public:
-    dispmanager(powermanager* manager,myapp* app);
+    dispmanager();
     ~dispmanager();
 
-    powermanager* power_manager;
-    myapp* app;
     esp_io_expander_handle_t io_expander_handle;
     esp_lcd_panel_io_handle_t screen_spi_handle;
     esp_lcd_panel_handle_t screen_handle;
