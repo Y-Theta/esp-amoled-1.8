@@ -1,5 +1,5 @@
 #ifndef USE_COMMON
-#include "common.hpp"
+#include "common.h"
 #endif
 
 #ifndef USE_WIFI

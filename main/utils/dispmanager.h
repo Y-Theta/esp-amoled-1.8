@@ -1,14 +1,13 @@
 #ifndef USE_COMMON
-#include "common.hpp"
+#include "common.h"
 #endif
 
 #ifndef POWER_MANAGER
 #include "powermanager.h"
 #endif
 
-#ifndef MY_APP
-#include "app/app.h"
-#endif
+#ifndef USE_DISP
+#define USE_DISP
 
 class dispmanager
 {
@@ -42,7 +41,6 @@ public:
     void framework_init();
 
     void set_brightness(int bright);
-    int pwr_click();
-    int boot_click();
 };
 
+#endif

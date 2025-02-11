@@ -23,9 +23,13 @@
 #include "esp_log.h"
 #include "esp_pm.h"
 #include "esp_wifi.h"
+#include "cJSON.h"
 
 #include "nvs_flash.h"
 #include "esp_http_server.h"
+#include "iot_button.h"
+#include "button_adc.h"
+#include "button_gpio.h"
 
 #include "lvgl.h"
 #include "lv_lottie.h"
@@ -75,6 +79,8 @@ static const char *TAG = "AIChat";
 #define PIN_NUM_LCD_RST (-1)
 #define PIN_NUM_BK_LIGHT (-1)
 
+#define PIN_NUM_BOOT 0
+
 // The pixel number in horizontal and vertical
 
 
@@ -95,7 +101,9 @@ static const char *TAG = "AIChat";
 #define LVGL_TASK_STACK_SIZE (48 * 1024)
 #define LVGL_TASK_PRIORITY 2
 
-static SemaphoreHandle_t lvgl_mux = NULL;
+typedef void (*gpio_isr_t)(void *arg);
+
+static volatile SemaphoreHandle_t lvgl_mux = NULL;
 
 static bool example_lvgl_lock(int timeout_ms) {
     assert(lvgl_mux && "bsp_display_start must be called first");

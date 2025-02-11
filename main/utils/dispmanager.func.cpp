@@ -14,25 +14,3 @@ void dispmanager::set_brightness(int bright) {
     uint8_t *cmd = new uint8_t[]{(uint8_t)bright};
     tx_param(screen_spi_handle, 0x51, cmd, sizeof(cmd));
 }
-
-int dispmanager::pwr_click() {
-    uint32_t pin_levels = 0;
-    int count = 1;
-    esp_io_expander_get_level(io_expander_handle, IO_EXPANDER_PIN_NUM_4, &pin_levels);
-    if (pin_levels) {
-        while (true) {
-            vTaskDelay(pdMS_TO_TICKS(50));
-            esp_io_expander_get_level(io_expander_handle, IO_EXPANDER_PIN_NUM_4, &pin_levels);
-            if (!pin_levels) {
-                
-                return count;
-                break;
-            }
-        }
-    }
-    return 0;
-}
-
-int dispmanager::boot_click() {
-    return 0;
-}

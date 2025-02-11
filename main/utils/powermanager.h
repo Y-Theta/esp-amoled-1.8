@@ -1,5 +1,5 @@
 #ifndef USE_COMMON
-#include "common.hpp"
+#include "common.h"
 #endif
 
 #define XPOWERS_CHIP_AXP2101
@@ -9,6 +9,7 @@
 
 #ifndef POWER_MANAGER
 #define POWER_MANAGER
+
 
 class powermanager
 {
@@ -20,6 +21,7 @@ public:
     powermanager(/* args */);
     ~powermanager();
 
+    void * power_cb_userdata;
     std::function<void(powermanager* manager)> power_cb;
 
     esp_err_t init();
@@ -30,5 +32,6 @@ public:
     void sleep();
     void wakeup();
 };
+
 
 #endif
