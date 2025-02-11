@@ -1,5 +1,5 @@
 #ifndef USE_COMMON
-#include "common.h"
+#include "common.hpp"
 #endif
 
 #ifndef POWER_MANAGER
@@ -26,7 +26,8 @@ private:
     lv_obj_t *lottie_ani = NULL;
     lv_obj_t *setting_image = NULL;
     lv_style_t *battery_style = NULL;
-
+    
+    /// @brief 创建电池电量控件
     void create_battery_label(); 
 public:
     myapp();

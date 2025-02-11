@@ -39,3 +39,5 @@ spiffs_create_partition_assets(
     MMAP_SUPPORT_SPNG
     MMAP_SPLIT_HEIGHT 16
 )
+
+littlefs_create_partition_image(setting ./setting FLASH_IN_PROJECT)

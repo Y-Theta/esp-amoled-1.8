@@ -1,24 +1,15 @@
 #include "app/app.h"
-#include "common.h"
+#include "common.hpp"
 #include "utils/dispmanager.h"
 #include "utils/powermanager.h"
 #include "utils/wifimanager.h"
+#include "utils/fsmanager.h"
 
 static powermanager *power_manager;
 static dispmanager *disp_manager;
 static wifimanager *wifi_manager;
+static fsmanager *fs_manager;
 static myapp *mainapp;
-
-static bool example_lvgl_lock(int timeout_ms) {
-    assert(lvgl_mux && "bsp_display_start must be called first");
-    const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
-    return xSemaphoreTake(lvgl_mux, timeout_ticks) == pdTRUE;
-}
-
-static void example_lvgl_unlock(void) {
-    assert(lvgl_mux && "bsp_display_start must be called first");
-    xSemaphoreGive(lvgl_mux);
-}
 
 static void example_lvgl_port_task(void *arg) {
     auto handle = (dispmanager *)arg;
@@ -42,9 +33,9 @@ static void example_lvgl_port_task(void *arg) {
 }
 
 static void on_power_update(powermanager *manager) {
-    if (xSemaphoreTake(lvgl_mux, 10) == pdTRUE) {
+    if (example_lvgl_lock(-1)) {
         mainapp->update_battery_status(manager);
-        xSemaphoreGive(lvgl_mux);
+        example_lvgl_unlock();
     }
 }
 
@@ -64,14 +55,14 @@ static void toogle_screen(dispmanager *manager) {
 
 static bool flag1 = false;
 static void toogle_cpu() {
-    if (xSemaphoreTake(lvgl_mux, 10) == pdTRUE) {
+    if (example_lvgl_lock(10)) {
         if (flag1) {
             mainapp->pause_ani();
         } else {
             mainapp->resume_ani();
         }
         flag1 = !flag1;
-        xSemaphoreGive(lvgl_mux);
+        example_lvgl_unlock();
     }
 }
 
@@ -116,13 +107,14 @@ extern "C" void app_main(void) {
     ESP_LOGI(TAG, "free heap: %d,\nfree internal: %d ", esp_get_free_heap_size(), esp_get_free_internal_heap_size());
 
     mainapp = new myapp();
+    fs_manager = new fsmanager();
     power_manager = new powermanager();
     wifi_manager = new wifimanager();
     disp_manager = new dispmanager();
 
     lvgl_mux = xSemaphoreCreateMutex();
     assert(lvgl_mux);
-    
+
     disp_manager->init_i2c();
     power_manager->init();
     power_manager->power_cb = on_power_update;

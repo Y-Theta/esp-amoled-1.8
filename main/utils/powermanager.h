@@ -1,5 +1,5 @@
 #ifndef USE_COMMON
-#include "common.h"
+#include "common.hpp"
 #endif
 
 #define XPOWERS_CHIP_AXP2101

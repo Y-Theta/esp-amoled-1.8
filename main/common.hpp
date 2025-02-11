@@ -8,6 +8,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdint.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -28,6 +29,7 @@
 
 #include "lvgl.h"
 #include "lv_lottie.h"
+#include "esp_littlefs.h"
 #include "esp_lcd_sh8601.h"
 #include "esp_lcd_touch_ft5x06.h"
 
@@ -95,13 +97,22 @@ static const char *TAG = "AIChat";
 
 static SemaphoreHandle_t lvgl_mux = NULL;
 
-namespace Utils{
+static bool example_lvgl_lock(int timeout_ms) {
+    assert(lvgl_mux && "bsp_display_start must be called first");
+    const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
+    return xSemaphoreTake(lvgl_mux, timeout_ticks) == pdTRUE;
+}
 
-    struct PanelParam
-    {
-        esp_io_expander_handle_t iohandle;
-        esp_lcd_panel_handle_t panelhandle;
-    };
+static void example_lvgl_unlock(void) {
+    assert(lvgl_mux && "bsp_display_start must be called first");
+    xSemaphoreGive(lvgl_mux);
+}
+
+namespace COMMON{
+
+    typedef struct {
+        char* wifi_ssid;
+    } config;
 }
 
 #endif
