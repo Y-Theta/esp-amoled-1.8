@@ -52,6 +52,7 @@ public:
     dispmanager *disp_manager;
     wifimanager *wifi_manager;
     fsmanager *fs_manager;
+    COMMON::global_config config;
 
     std::function<void(myapp* app)> pwr_click;
     std::function<void(myapp* app)> boot_click;

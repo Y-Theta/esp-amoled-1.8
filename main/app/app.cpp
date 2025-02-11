@@ -21,6 +21,14 @@ myapp::myapp() {
     wifi_manager = new wifimanager();
     disp_manager = new dispmanager();
 
+    auto settingjson = fs_manager->read_json("/setting/wifi.json");
+    if (settingjson) {
+        auto wifi_ssiditem = cJSON_GetObjectItem(settingjson, "wifi_ssid");
+        auto str = cJSON_GetStringValue(wifi_ssiditem);
+        config.wifi_ssid = str;
+        
+    }
+
     if (mmap_drive_handle == NULL) {
         init_mmapfile();
     }

@@ -9,6 +9,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -24,6 +27,8 @@
 #include "esp_pm.h"
 #include "esp_wifi.h"
 #include "cJSON.h"
+#include "esp_flash.h"
+#include "spi_flash_mmap.h"
 
 #include "nvs_flash.h"
 #include "esp_http_server.h"
@@ -120,7 +125,11 @@ namespace COMMON{
 
     typedef struct {
         char* wifi_ssid;
-    } config;
+        char* wifi_pass;
+        
+        char* server_url;
+        char* api_key_token;
+    } global_config;
 }
 
 #endif
