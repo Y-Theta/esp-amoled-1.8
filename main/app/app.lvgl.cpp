@@ -127,7 +127,7 @@ void myapp::init_framework() {
     disp_drv.rounder_cb = lvgl_rounder_cb;
     disp_drv.drv_update_cb = lvgl_update_cb;
     disp_drv.draw_buf = &disp_buf;
-    disp_drv.user_data = this;
+    disp_drv.user_data = this->device_manager;
     lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
 
     ESP_LOGI(TAG, "Install LVGL tick timer");
@@ -149,7 +149,7 @@ void myapp::init_framework() {
     indev_drv.type = LV_INDEV_TYPE_POINTER;
     indev_drv.disp = disp;
     indev_drv.read_cb = lvgl_touch_cb;
-    indev_drv.user_data = this;
+    indev_drv.user_data = this->device_manager;
     lv_indev_drv_register(&indev_drv);
 #endif
 }
