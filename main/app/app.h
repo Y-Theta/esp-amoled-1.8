@@ -7,7 +7,7 @@
 #endif
 
 #ifndef USE_DISP
-#include "utils/dispmanager.h"
+#include "utils/devicemanager.h"
 #endif
 
 #ifndef USE_WIFI
@@ -23,23 +23,22 @@
 #include "esp_lv_decoder.h"
 #include "mmap_generate_resources.h"
 
-typedef struct {
-    button_driver_t base;
-    int32_t gpio_num;              /**< num of gpio */
-    uint8_t active_level;          /**< gpio level when press down */
-} custom_gpio_obj;
 
 class myapp {
 private:
     static mmap_assets_handle_t mmap_drive_handle;
     static esp_lv_decoder_handle_t decoder_handle;
+    static std::map<MMAP_RESOURCES_LISTS ,COMMON::assets_info_t> assets_map;
+
     static esp_err_t init_mmapfile();
     static esp_err_t release_mmapfile();
     static void create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MMAP_RESOURCES_LISTS image, lv_event_cb_t cb);
 
-    lv_style_t panel_style;
-    lv_obj_t *header_bar = NULL;
+    lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
+    lv_disp_drv_t disp_drv;      // contains callback functions
 
+    lv_style_t header_bar_style;
+    lv_obj_t *header_bar = NULL;
 
     lv_obj_t *battery_label = NULL;
     lv_obj_t *battery_bg = NULL;
@@ -48,18 +47,26 @@ private:
 
     lv_obj_t *lottie_ani = NULL;
     lv_obj_t *setting_image = NULL;
-    lv_style_t *battery_style = NULL;
 
-
-    lv_obj_t* init_layout();
+    /// @brief 
     void init_btn();
+    /// @brief 初始化 lvgl
+    void init_framework();
+    /// @brief 
+    /// @return 
+    lv_obj_t* init_layout();
     /// @brief 创建电池电量控件
-    void create_battery_label( lv_obj_t *baselayout);
+    void create_battery_label(lv_obj_t *baselayout);
     /// @brief 创建 wifi 标识
-    void create_wifi_label();
+    void create_wifi_label(lv_obj_t *baselayout);
+    /// @brief 创建上部区域控件
+    void create_header_bar(lv_obj_t *baselayout);
 public:
+
+    static COMMON::assets_info_t* get_mmap_assets(MMAP_RESOURCES_LISTS assets);
+
     powermanager *power_manager;
-    dispmanager *disp_manager;
+    devicemanager *device_manager;
     wifimanager *wifi_manager;
     fsmanager *fs_manager;
     COMMON::global_config config;
@@ -73,6 +80,8 @@ public:
     void init();
     void init_ui_elements();
     void update_battery_status(powermanager *manager);
+
+    void set_wifi_status(bool flag);
 
     void pause_ani();
     void resume_ani();

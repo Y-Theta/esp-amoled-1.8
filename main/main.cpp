@@ -26,11 +26,11 @@ static void example_lvgl_port_task(void *arg) {
 static bool flag = false;
 static void toogle_screen(myapp *manager) {
     if (flag) {
-        esp_lcd_panel_disp_on_off(manager->disp_manager->screen_handle, true);
+        esp_lcd_panel_disp_on_off(manager->device_manager->screen_handle, true);
         // esp_lcd_touch_exit_sleep(manager->touch_handle);
         manager->power_manager->wakeup();
     } else {
-        esp_lcd_panel_disp_on_off(manager->disp_manager->screen_handle, false);
+        esp_lcd_panel_disp_on_off(manager->device_manager->screen_handle, false);
         // esp_lcd_touch_enter_sleep(manager->touch_handle);
         manager->power_manager->sleep();
     }

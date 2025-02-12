@@ -1,4 +1,4 @@
-#include "dispmanager.h"
+#include "devicemanager.h"
 
 #define LCD_OPCODE_WRITE_CMD (0x02ULL)
 #define LCD_OPCODE_READ_CMD (0x03ULL)
@@ -10,7 +10,7 @@ static esp_err_t tx_param(esp_lcd_panel_io_handle_t io, int lcd_cmd, const void 
     return esp_lcd_panel_io_tx_param(io, lcd_cmd, param, param_size);
 }
 
-void dispmanager::set_brightness(int bright) {
+void devicemanager::set_brightness(int bright) {
     uint8_t *cmd = new uint8_t[]{(uint8_t)bright};
     tx_param(screen_spi_handle, 0x51, cmd, sizeof(cmd));
 }

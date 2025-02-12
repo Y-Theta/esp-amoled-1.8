@@ -7,41 +7,42 @@
 #include "style.h"
 #endif
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <map>
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include "cJSON.h"
 #include "driver/gpio.h"
 #include "driver/i2c.h"
 #include "driver/spi_master.h"
-#include "esp_timer.h"
-#include "esp_lcd_panel_io.h"
-#include "esp_lcd_panel_vendor.h"
-#include "esp_lcd_panel_ops.h"
 #include "esp_err.h"
+#include "esp_flash.h"
+#include "esp_lcd_panel_io.h"
+#include "esp_lcd_panel_ops.h"
+#include "esp_lcd_panel_vendor.h"
 #include "esp_log.h"
 #include "esp_pm.h"
+#include "esp_timer.h"
 #include "esp_wifi.h"
-#include "cJSON.h"
-#include "esp_flash.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "spi_flash_mmap.h"
 
-#include "nvs_flash.h"
-#include "esp_http_server.h"
-#include "iot_button.h"
 #include "button_adc.h"
 #include "button_gpio.h"
+#include "esp_http_server.h"
+#include "iot_button.h"
+#include "nvs_flash.h"
 
-#include "lvgl.h"
-#include "lv_lottie.h"
-#include "thorvg_capi.h"
-#include "esp_littlefs.h"
 #include "esp_lcd_sh8601.h"
 #include "esp_lcd_touch_ft5x06.h"
+#include "esp_littlefs.h"
+#include "lv_lottie.h"
+#include "lvgl.h"
+#include "thorvg_capi.h"
 
 #include "esp_io_expander_tca9554.h"
 #include "functional"
@@ -89,13 +90,12 @@ static const char *TAG = "AIChat";
 
 // The pixel number in horizontal and vertical
 
-
 #define EXAMPLE_USE_TOUCH 1
 
 #if EXAMPLE_USE_TOUCH
 #define PIN_NUM_TOUCH_SCL (GPIO_NUM_14)
 #define PIN_NUM_TOUCH_SDA (GPIO_NUM_15)
-#define PIN_NUM_TOUCH_RST ((gpio_num_t)-1)
+#define PIN_NUM_TOUCH_RST ((gpio_num_t) - 1)
 #define PIN_NUM_TOUCH_INT (GPIO_NUM_21)
 
 #endif
@@ -122,15 +122,29 @@ static void example_lvgl_unlock(void) {
     xSemaphoreGive(lvgl_mux);
 }
 
-namespace COMMON{
+namespace COMMON {
+typedef struct {
+    button_driver_t base;
+    int32_t gpio_num;     /**< num of gpio */
+    uint8_t active_level; /**< gpio level when press down */
+} custom_gpio_obj;
 
-    typedef struct {
-        char* wifi_ssid;
-        char* wifi_pass;
-        
-        char* server_url;
-        char* api_key_token;
-    } global_config;
-}
+typedef struct {
+    char *wifi_ssid;
+    char *wifi_pass;
+
+    char *server_url;
+    char *api_key_token;
+} global_config;
+
+typedef struct {
+    int32_t size;
+    const uint8_t* buf;
+} assets_info_t;
+
+typedef struct {
+
+} image_btn_info_t;
+} // namespace COMMON
 
 #endif

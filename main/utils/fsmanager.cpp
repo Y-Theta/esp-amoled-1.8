@@ -53,12 +53,6 @@ cJSON *fsmanager::read_json(char *path) {
     cJSON *ptr = NULL;
     FILE *fp = fopen(path, "w+");
 
-    // ptr1 = cJSON_CreateObject();
-    // cJSON_AddStringToObject(ptr1, "wifi_ssid", "8888");
-    // auto content = cJSON_Print(ptr1);
-    // fputs(content, fp);
-    // fflush(fp);
-
     char *str = nullptr;
     char buf[read_buf_size];
     fseek(fp, 0, SEEK_SET);

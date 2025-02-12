@@ -2,16 +2,17 @@
 
 mmap_assets_handle_t myapp::mmap_drive_handle = NULL;
 esp_lv_decoder_handle_t myapp::decoder_handle = NULL;
+std::map<MMAP_RESOURCES_LISTS ,COMMON::assets_info_t> myapp::assets_map;
 
 void myapp::init() {
-    disp_manager->init_i2c();
+    device_manager->init_i2c();
     power_manager->init();
-    disp_manager->init_io_expander();
-    disp_manager->init_screen();
-    disp_manager->set_brightness(64);
-    disp_manager->init_touch();
-    disp_manager->framework_init();
+    device_manager->init_io_expander();
+    device_manager->init_screen();
+    device_manager->set_brightness(128);
+    device_manager->init_touch();
     power_manager->start_power_monitor();
+    init_framework();
     init_btn();
     esp_lv_decoder_init(&decoder_handle);
 }
@@ -26,7 +27,7 @@ myapp::myapp() {
     fs_manager = new fsmanager();
     power_manager = new powermanager();
     wifi_manager = new wifimanager();
-    disp_manager = new dispmanager();
+    device_manager = new devicemanager();
 
     auto settingjson = fs_manager->read_json("/setting/wifi.json");
     if (settingjson) {
@@ -61,6 +62,20 @@ void myapp::update_battery_status(powermanager *manager) {
     }
 }
 
+COMMON::assets_info_t *myapp::get_mmap_assets(MMAP_RESOURCES_LISTS assets_name) {
+    if (assets_map.contains(assets_name)) {
+        auto items = assets_map.find(assets_name);
+        return &items->second;
+    }
+
+    static COMMON::assets_info_t info;
+    info.buf = mmap_assets_get_mem(myapp::mmap_drive_handle, assets_name);
+    info.size = mmap_assets_get_size(myapp::mmap_drive_handle, assets_name);
+    assets_map.insert(std::make_pair(assets_name, info));
+
+    return &info;
+}
+
 static void boot_btn_event_cb(void *arg, void *data) {
     myapp *app = (myapp *)data;
     button_event_t event = iot_button_get_event((button_handle_t)arg);
@@ -86,7 +101,7 @@ static void pwr_btn_event_cb(void *arg, void *data) {
 static uint8_t get_pwr_level(button_driver_t *button_driver) {
     auto app = (myapp *)button_driver->user_data;
     uint32_t pin_levels = 0;
-    esp_io_expander_get_level(app->disp_manager->io_expander_handle, IO_EXPANDER_PIN_NUM_4, &pin_levels);
+    esp_io_expander_get_level(app->device_manager->io_expander_handle, IO_EXPANDER_PIN_NUM_4, &pin_levels);
     return pin_levels ? 1 : 0;
 }
 
@@ -102,7 +117,7 @@ void myapp::init_btn() {
 
     static button_handle_t btn_pwr = NULL;
     const button_config_t pwr_cfg = {0};
-    custom_gpio_obj *custom_btn = (custom_gpio_obj *)calloc(1, sizeof(custom_gpio_obj));
+    COMMON::custom_gpio_obj *custom_btn = (COMMON::custom_gpio_obj *)calloc(1, sizeof(COMMON::custom_gpio_obj));
     custom_btn->active_level = 1;
     custom_btn->gpio_num = IO_EXPANDER_PIN_NUM_4;
     custom_btn->base.get_key_level = get_pwr_level;
@@ -135,8 +150,26 @@ esp_err_t myapp::release_mmapfile(void) {
     return ESP_OK;
 }
 
+bool flag = false;
 static void on_setting_tap(lv_event_t *event) {
-    ESP_LOGI(TAG, "btn tap");
+    auto app = (myapp *)event->user_data;
+    ESP_LOGI(TAG, "btn tap %d", flag);
+    app->set_wifi_status(flag);
+    flag = !flag;
+}
+
+void myapp::set_wifi_status(bool flag) {
+    static lv_img_dsc_t img_wink_png;
+    COMMON::assets_info_t *assets_info = NULL;
+    if (flag) {
+        assets_info = myapp::get_mmap_assets(MMAP_RESOURCES_WIFI_SPNG);
+    } else {
+        assets_info = myapp::get_mmap_assets(MMAP_RESOURCES_NOWIFI_SPNG);
+    }
+    img_wink_png.data_size = assets_info->size;
+    img_wink_png.data = assets_info->buf;
+
+    lv_img_set_src(wifi_icon, &img_wink_png);
 }
 
 void myapp::create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MMAP_RESOURCES_LISTS image, lv_event_cb_t cb) {
@@ -149,7 +182,7 @@ void myapp::create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MM
     lv_style_set_bg_opa(&style_pr, LV_OPA_0);
 
     pointer = lv_btn_create(screen);
-    lv_obj_add_event_cb(pointer, cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(pointer, cb, LV_EVENT_CLICKED, app);
     lv_obj_remove_style_all(pointer);
     lv_obj_add_style(pointer, &style, 0);
     lv_obj_add_style(pointer, &style_pr, LV_STATE_PRESSED);
@@ -158,12 +191,11 @@ void myapp::create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MM
 
     auto lvimage = lv_img_create(pointer);
     static lv_img_dsc_t img_wink_png;
-    img_wink_png.data_size = mmap_assets_get_size(mmap_drive_handle, image);
-    img_wink_png.data = mmap_assets_get_mem(mmap_drive_handle, image);
+    auto assets_info = myapp::get_mmap_assets(image);
+    img_wink_png.data_size = assets_info->size;
+    img_wink_png.data = assets_info->buf;
     lv_img_set_src(lvimage, &img_wink_png);
     lv_obj_align(lvimage, LV_ALIGN_CENTER, 0, 0);
-
-    // lv_obj_add_event_cb(pointer, on_setting_tap, LV_EVENT_PRESSED, NULL);
 }
 
 void myapp::create_battery_label(lv_obj_t *baselayout) {
@@ -193,15 +225,26 @@ void myapp::create_battery_label(lv_obj_t *baselayout) {
     lv_obj_align(battery_label, LV_ALIGN_CENTER, 0, 0);
 }
 
-void myapp::create_wifi_label() {
-    auto screen = lv_scr_act();
+void myapp::create_header_bar(lv_obj_t *baselayout) {
+    create_image_btn(setting_image, baselayout, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
+    create_wifi_label(baselayout);
+    auto spaceobj = lv_obj_create(baselayout);
+    lv_obj_remove_style_all(spaceobj);
+    lv_obj_set_flex_grow(spaceobj, 1);
+    create_battery_label(baselayout);
+}
 
-    wifi_icon = lv_img_create(screen);
+void myapp::create_wifi_label(lv_obj_t *baselayout) {
+    wifi_icon = lv_img_create(baselayout);
     static lv_img_dsc_t img_wink_png;
-    img_wink_png.data_size = mmap_assets_get_size(mmap_drive_handle, MMAP_RESOURCES_NOWIFI_SPNG);
-    img_wink_png.data = mmap_assets_get_mem(mmap_drive_handle, MMAP_RESOURCES_NOWIFI_SPNG);
+    auto assets_info = myapp::get_mmap_assets(MMAP_RESOURCES_NOWIFI_SPNG);
+    img_wink_png.data_size = assets_info->size;
+    img_wink_png.data = assets_info->buf;
     lv_img_set_src(wifi_icon, &img_wink_png);
-    lv_obj_align(wifi_icon, LV_ALIGN_CENTER, 0, 0);
+    lv_img_set_size_mode(wifi_icon, LV_IMG_SIZE_MODE_REAL);
+    lv_obj_set_size(wifi_icon, ICON_WIFI_WIDTH, ICON_WIFI_HEIGHT);
+    lv_obj_set_style_pad_left(wifi_icon, 8, 0);
+    lv_obj_set_flex_grow(wifi_icon, 0);
 }
 
 lv_obj_t *myapp::init_layout() {
@@ -210,16 +253,17 @@ lv_obj_t *myapp::init_layout() {
     lv_obj_set_flex_flow(screen, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(screen, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER);
 
-    lv_style_init(&panel_style);
-    lv_style_set_bg_opa(&panel_style, LV_OPA_0);
+    lv_style_init(&header_bar_style);
+    lv_style_set_bg_opa(&header_bar_style, LV_OPA_0);
 
     header_bar = lv_obj_create(screen);
     lv_obj_remove_style_all(header_bar);
-    lv_obj_add_style(header_bar, &panel_style, 0);
+    lv_obj_add_style(header_bar, &header_bar_style, 0);
+    lv_obj_clear_flag(header_bar, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_size(header_bar, SCREEN_H_RES, LAYOUT_CTL_PANEL_HEIGHT);
-    lv_obj_set_style_pad_top(header_bar, 8, 0);
-    lv_obj_set_style_pad_left(header_bar, 12, 0);
-    lv_obj_set_style_pad_right(header_bar, 12, 0);
+    lv_obj_set_style_pad_top(header_bar, LAYOUT_HEADER_BAR_PAD_TOP, 0);
+    lv_obj_set_style_pad_left(header_bar, LAYOUT_HEADER_BAR_PAD_LEFT, 0);
+    lv_obj_set_style_pad_right(header_bar, LAYOUT_HEADER_BAR_PAD_RIGHT, 0);
     lv_obj_set_layout(header_bar, LV_LAYOUT_FLEX);
     lv_obj_set_flex_grow(header_bar, 0);
     lv_obj_set_flex_flow(header_bar, LV_FLEX_FLOW_ROW);
@@ -231,7 +275,7 @@ lv_obj_t *myapp::init_layout() {
 void myapp::init_ui_elements() {
 
     auto screen = init_layout();
-
+    create_header_bar(header_bar);
     // const uint8_t *uint8_data = mmap_assets_get_mem(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
     // int uint8_length = mmap_assets_get_size(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
     // lottie_ani = lv_lottie_create(lv_scr_act());
@@ -239,9 +283,6 @@ void myapp::init_ui_elements() {
     // static void *fb = heap_caps_malloc(LOTTIE_SIZE * LOTTIE_SIZE * 4, MALLOC_CAP_SPIRAM);
     // lv_lottie_set_buffer(lottie_ani, LOTTIE_SIZE, LOTTIE_SIZE, fb);
     // lv_lottie_set_src_data(lottie_ani, uint8_data, uint8_length);
-
-    create_image_btn(setting_image, header_bar, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
-    create_battery_label(header_bar);
 
     lv_obj_set_style_bg_color(screen, LV_COLOR_MAKE(0, 0, 0), LV_STATE_DEFAULT);
 }

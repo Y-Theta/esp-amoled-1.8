@@ -7,7 +7,7 @@
 
 class fsmanager {
 private:
-    esp_vfs_littlefs_conf_t* conf;
+    esp_vfs_littlefs_conf_t *conf;
     int read_buf_size = 128;
 
 public:
@@ -15,7 +15,7 @@ public:
     ~fsmanager();
 
     cJSON *read_json(char *path);
-    void save_config(COMMON::global_config config,char *path);
+    void save_config(COMMON::global_config config, char *path);
 };
 
 #endif
