@@ -13,6 +13,8 @@ void myapp::init() {
     disp_manager->framework_init();
     power_manager->start_power_monitor();
     init_btn();
+    esp_lv_decoder_init(&decoder_handle);
+    tvg_engine_init(TVG_ENGINE_SW, 0);
 }
 
 myapp::myapp() {
@@ -26,7 +28,8 @@ myapp::myapp() {
         auto wifi_ssiditem = cJSON_GetObjectItem(settingjson, "wifi_ssid");
         auto str = cJSON_GetStringValue(wifi_ssiditem);
         config.wifi_ssid = str;
-        
+
+        cJSON_Delete(settingjson);
     }
 
     if (mmap_drive_handle == NULL) {
@@ -44,12 +47,14 @@ void myapp::update_battery_status(powermanager *manager) {
         char post[6];
         auto p = manager->get_percent();
         auto ischarge = manager->is_charging();
-        snprintf(post, sizeof(post), "%d %%", p);
+        snprintf(post, sizeof(post), "%d", p);
         lv_label_set_text(battery_label, post);
         if (ischarge) {
-            lv_obj_set_style_bg_color(battery_bg, lv_color_hex(0x00ff22), 0);
+            lv_obj_set_style_text_color(battery_label, lv_color_hex(BAT_COLOR_FG_CHARGING), 0);
+            lv_obj_set_style_bg_color(battery_bg, lv_color_hex(BAT_COLOR_BG_CHARGING), 0);
         } else {
-            lv_obj_set_style_bg_color(battery_bg, lv_color_hex(0xffffff), 0);
+            lv_obj_set_style_text_color(battery_label, lv_color_hex(BAT_COLOR_FG_NORMAL), 0);
+            lv_obj_set_style_bg_color(battery_bg, lv_color_hex(BAT_COLOR_BG_NORMAL), 0);
         }
     }
 }
@@ -165,7 +170,7 @@ void myapp::create_battery_label() {
     static lv_style_t style;
     lv_style_init(&style);
     lv_style_set_bg_opa(&style, LV_OPA_100);
-    lv_style_set_bg_color(&style, lv_color_hex(0xffffff));
+    lv_style_set_bg_color(&style, lv_color_hex(BAT_COLOR_BG_NORMAL));
     lv_style_set_radius(&style, BAT_RADIUS);
 
     battery_bg = lv_obj_create(screen);
@@ -177,29 +182,31 @@ void myapp::create_battery_label() {
     battery_label = lv_label_create(battery_bg);
     static lv_style_t style_bat;
     lv_style_init(&style_bat);
-    lv_style_set_text_font(&style_bat, &lv_font_montserrat_20);
-    lv_style_set_text_color(&style_bat, lv_color_hex(0x000000));
+    lv_style_set_text_font(&style_bat, &lv_font_montserrat_14);
+    lv_style_set_text_color(&style_bat, lv_color_hex(BAT_COLOR_FG_NORMAL));
     lv_obj_add_style(battery_label, &style_bat, 0);
-    lv_label_set_text(battery_label, "000 %");
+    lv_label_set_text(battery_label, "BAT");
     lv_obj_align(battery_label, LV_ALIGN_CENTER, 0, 0);
 }
 
 void myapp::init_ui_elements() {
-    esp_lv_decoder_init(&decoder_handle);
 
     auto screen = lv_scr_act();
-    const uint8_t *uint8_data = mmap_assets_get_mem(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
-    int uint8_length = mmap_assets_get_size(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
-    lottie_ani = lv_lottie_create(lv_scr_act());
-    lv_obj_center(lottie_ani);
-    static void *fb = heap_caps_malloc(LOTTIE_SIZE * LOTTIE_SIZE * 4, MALLOC_CAP_SPIRAM);
-    lv_lottie_set_buffer(lottie_ani, LOTTIE_SIZE, LOTTIE_SIZE, fb);
-    lv_lottie_set_src_data(lottie_ani, uint8_data, uint8_length);
+    // const uint8_t *uint8_data = mmap_assets_get_mem(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
+    // int uint8_length = mmap_assets_get_size(mmap_drive_handle, MMAP_RESOURCES_DATA_JSON);
+    // lottie_ani = lv_lottie_create(lv_scr_act());
+    // lv_obj_center(lottie_ani);
+    // static void *fb = heap_caps_malloc(LOTTIE_SIZE * LOTTIE_SIZE * 4, MALLOC_CAP_SPIRAM);
+    // lv_lottie_set_buffer(lottie_ani, LOTTIE_SIZE, LOTTIE_SIZE, fb);
+    // lv_lottie_set_src_data(lottie_ani, uint8_data, uint8_length);
+
+    auto canvas = tvg_swcanvas_create();
+    auto shape = tvg_shape_new();
 
     create_image_btn(setting_image, screen, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
-    // esp_lv_decoder_deinit(decoder_handle);
-    // test_mmap_drive_del();
+
     create_battery_label();
+
     lv_obj_set_style_bg_color(screen, LV_COLOR_MAKE(0, 0, 0), LV_STATE_DEFAULT);
 }
 

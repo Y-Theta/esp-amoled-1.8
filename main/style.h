@@ -8,9 +8,15 @@
 #define BTN_TOP_PADDING 24
 
 #define LOTTIE_SIZE 160
-#define BAT_WIDTH 72
-#define BAT_HEIGHT 28
+
+#define BAT_COLOR_FG_NORMAL (0x000000)
+#define BAT_COLOR_FG_CHARGING (0xffffff)
+#define BAT_COLOR_BG_NORMAL (0xffffff)
+#define BAT_COLOR_BG_CHARGING (0x2ced9d)
+
+#define BAT_WIDTH 48
+#define BAT_HEIGHT 24
 #define BAT_PADDING 24
-#define BAT_RADIUS 6
+#define BAT_RADIUS 10
 
 #endif

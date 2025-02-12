@@ -38,6 +38,7 @@
 
 #include "lvgl.h"
 #include "lv_lottie.h"
+#include "thorvg_capi.h"
 #include "esp_littlefs.h"
 #include "esp_lcd_sh8601.h"
 #include "esp_lcd_touch_ft5x06.h"
