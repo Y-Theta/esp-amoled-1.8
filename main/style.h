@@ -27,4 +27,7 @@
 #define BAT_PADDING 24
 #define BAT_RADIUS 12
 
+#define WIN_WIFI_LIST_HEADER_HEIGHT 48
+#define WIN_WIFI_LIST_TITLE_FG (0xffffff)
+
 #endif

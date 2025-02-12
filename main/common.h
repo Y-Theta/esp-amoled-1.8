@@ -111,13 +111,13 @@ typedef void (*gpio_isr_t)(void *arg);
 
 static volatile SemaphoreHandle_t lvgl_mux = NULL;
 
-static bool example_lvgl_lock(int timeout_ms) {
+static bool lvgl_lock(int timeout_ms) {
     assert(lvgl_mux && "bsp_display_start must be called first");
     const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
     return xSemaphoreTake(lvgl_mux, timeout_ticks) == pdTRUE;
 }
 
-static void example_lvgl_unlock(void) {
+static void lvgl_unlock(void) {
     assert(lvgl_mux && "bsp_display_start must be called first");
     xSemaphoreGive(lvgl_mux);
 }
@@ -136,6 +136,11 @@ typedef struct {
     char *server_url;
     char *api_key_token;
 } global_config;
+
+typedef struct {
+    bool is_wifi_connect = 0;
+
+} main_view_model;
 
 typedef struct {
     int32_t size;

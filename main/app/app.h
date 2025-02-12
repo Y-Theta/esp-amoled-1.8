@@ -40,19 +40,23 @@ private:
     lv_style_t header_bar_style;
     lv_obj_t *header_bar = NULL;
 
+    lv_style_t body_style;
+    lv_obj_t *body = NULL;
+
     lv_obj_t *battery_label = NULL;
     lv_obj_t *battery_bg = NULL;
 
     lv_obj_t *wifi_icon = NULL;
 
-    lv_obj_t *lottie_ani = NULL;
-    lv_obj_t *setting_image = NULL;
+    lv_obj_t *setting_btn = NULL;
 
-    /// @brief 
+    lv_obj_t *lottie_ani = NULL;
+
+    /// @brief 初始化硬件按钮
     void init_btn();
     /// @brief 初始化 lvgl
     void init_framework();
-    /// @brief 
+    /// @brief 初始化界面布局
     /// @return 
     lv_obj_t* init_layout();
     /// @brief 创建电池电量控件
@@ -61,6 +65,8 @@ private:
     void create_wifi_label(lv_obj_t *baselayout);
     /// @brief 创建上部区域控件
     void create_header_bar(lv_obj_t *baselayout);
+    /// @brief 
+    void wifi_window();
 public:
 
     static COMMON::assets_info_t* get_mmap_assets(MMAP_RESOURCES_LISTS assets);
@@ -69,7 +75,9 @@ public:
     devicemanager *device_manager;
     wifimanager *wifi_manager;
     fsmanager *fs_manager;
+    
     COMMON::global_config config;
+    COMMON::main_view_model view_model;
 
     std::function<void(myapp* app)> pwr_click;
     std::function<void(myapp* app)> boot_click;
@@ -82,6 +90,7 @@ public:
     void update_battery_status(powermanager *manager);
 
     void set_wifi_status(bool flag);
+    void open_wifi_setting();
 
     void pause_ani();
     void resume_ani();

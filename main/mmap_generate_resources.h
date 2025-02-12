@@ -13,12 +13,13 @@
 
 #include "esp_mmap_assets.h"
 
-#define MMAP_RESOURCES_FILES           4
-#define MMAP_RESOURCES_CHECKSUM        0x1FE2
+#define MMAP_RESOURCES_FILES           5
+#define MMAP_RESOURCES_CHECKSUM        0x0172
 
 enum MMAP_RESOURCES_LISTS {
     MMAP_RESOURCES_DATA_JSON = 0,        /*!< data.json */
-    MMAP_RESOURCES_NOWIFI_SPNG = 1,        /*!< nowifi.spng */
-    MMAP_RESOURCES_SETTING_SPNG = 2,        /*!< setting.spng */
-    MMAP_RESOURCES_WIFI_SPNG = 3,        /*!< wifi.spng */
+    MMAP_RESOURCES_BACK_SPNG = 1,        /*!< back.spng */
+    MMAP_RESOURCES_NOWIFI_SPNG = 2,        /*!< nowifi.spng */
+    MMAP_RESOURCES_SETTING_SPNG = 3,        /*!< setting.spng */
+    MMAP_RESOURCES_WIFI_SPNG = 4,        /*!< wifi.spng */
 };

@@ -4,8 +4,10 @@ bool flag = false;
 static void on_setting_tap(lv_event_t *event) {
     auto app = (myapp *)event->user_data;
     ESP_LOGI(TAG, "btn tap %d", flag);
-    app->set_wifi_status(flag);
-    flag = !flag;
+    app->open_wifi_setting();
+
+    // app->set_wifi_status(flag);
+    // flag = !flag;
 }
 
 void myapp::set_wifi_status(bool flag) {
@@ -49,8 +51,6 @@ void myapp::create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MM
 }
 
 void myapp::create_battery_label(lv_obj_t *baselayout) {
-    auto screen = lv_scr_act();
-
     static lv_style_t style_bat_bg;
     lv_style_init(&style_bat_bg);
     lv_style_set_bg_opa(&style_bat_bg, LV_OPA_100);
@@ -77,11 +77,7 @@ void myapp::create_battery_label(lv_obj_t *baselayout) {
 
 void myapp::create_wifi_label(lv_obj_t *baselayout) {
     wifi_icon = lv_img_create(baselayout);
-    static lv_img_dsc_t img_wink_png;
-    auto assets_info = myapp::get_mmap_assets(MMAP_RESOURCES_NOWIFI_SPNG);
-    img_wink_png.data_size = assets_info->size;
-    img_wink_png.data = assets_info->buf;
-    lv_img_set_src(wifi_icon, &img_wink_png);
+    set_wifi_status(this->view_model.is_wifi_connect);
     lv_img_set_size_mode(wifi_icon, LV_IMG_SIZE_MODE_REAL);
     lv_obj_set_size(wifi_icon, ICON_WIFI_WIDTH, ICON_WIFI_HEIGHT);
     lv_obj_set_style_pad_left(wifi_icon, 8, 0);
@@ -89,7 +85,7 @@ void myapp::create_wifi_label(lv_obj_t *baselayout) {
 }
 
 void myapp::create_header_bar(lv_obj_t *baselayout) {
-    create_image_btn(setting_image, baselayout, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
+    create_image_btn(setting_btn, baselayout, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
     create_wifi_label(baselayout);
     auto spaceobj = lv_obj_create(baselayout);
     lv_obj_remove_style_all(spaceobj);

@@ -2,7 +2,7 @@
 
 mmap_assets_handle_t myapp::mmap_drive_handle = NULL;
 esp_lv_decoder_handle_t myapp::decoder_handle = NULL;
-std::map<MMAP_RESOURCES_LISTS ,COMMON::assets_info_t> myapp::assets_map;
+std::map<MMAP_RESOURCES_LISTS, COMMON::assets_info_t> myapp::assets_map;
 
 void myapp::init() {
     device_manager->init_i2c();
@@ -152,9 +152,11 @@ esp_err_t myapp::release_mmapfile(void) {
 
 lv_obj_t *myapp::init_layout() {
     auto screen = lv_scr_act();
-    lv_obj_set_layout(screen, LV_LAYOUT_FLEX);
-    lv_obj_set_flex_flow(screen, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(screen, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_bg_color(screen, LV_COLOR_MAKE(0, 0, 0), LV_STATE_DEFAULT);
+    lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+    // lv_obj_set_layout(screen, LV_LAYOUT_FLEX);
+    // lv_obj_set_flex_flow(screen, LV_FLEX_FLOW_COLUMN);
+    // lv_obj_set_flex_align(screen, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER);
 
     lv_style_init(&header_bar_style);
     lv_style_set_bg_opa(&header_bar_style, LV_OPA_0);
@@ -168,11 +170,27 @@ lv_obj_t *myapp::init_layout() {
     lv_obj_set_style_pad_left(header_bar, LAYOUT_HEADER_BAR_PAD_LEFT, 0);
     lv_obj_set_style_pad_right(header_bar, LAYOUT_HEADER_BAR_PAD_RIGHT, 0);
     lv_obj_set_layout(header_bar, LV_LAYOUT_FLEX);
-    lv_obj_set_flex_grow(header_bar, 0);
+    // lv_obj_set_flex_grow(header_bar, 0);
     lv_obj_set_flex_flow(header_bar, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(header_bar, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_align(header_bar, LV_ALIGN_TOP_LEFT, 0, 0);
+
+    lv_style_init(&body_style);
+    lv_style_set_bg_opa(&body_style, LV_OPA_0);
+
+    body = lv_obj_create(screen);
+    lv_obj_remove_style_all(body);
+    lv_obj_add_style(body, &body_style, 0);
+    lv_obj_clear_flag(body, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_size(body, 240, 240);
+    lv_obj_align(body, LV_ALIGN_CENTER, 0, 0);
+    // lv_obj_set_layout(header_bar, LV_LAYOUT_FLEX);
+    // lv_obj_set_flex_grow(body, 1);
 
     return screen;
+}
+
+void thorvgtest() {
 }
 
 void myapp::init_ui_elements() {
@@ -182,7 +200,8 @@ void myapp::init_ui_elements() {
     // 创建状态栏
     create_header_bar(header_bar);
 
-    lv_obj_set_style_bg_color(screen, LV_COLOR_MAKE(0, 0, 0), LV_STATE_DEFAULT);
+    thorvgtest();
+
 }
 
 void myapp::pause_ani() {
