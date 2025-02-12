@@ -7,16 +7,20 @@
 #define BTN_MAIN_SIZE 36
 #define BTN_TOP_PADDING 24
 
+#define LAYOUT_CTL_PANEL_HEIGHT 44
+
+#define ICON_WIFI_SIZE 32
+
 #define LOTTIE_SIZE 160
 
 #define BAT_COLOR_FG_NORMAL (0x000000)
-#define BAT_COLOR_FG_CHARGING (0xffffff)
+#define BAT_COLOR_FG_CHARGING (0x000000)
 #define BAT_COLOR_BG_NORMAL (0xffffff)
 #define BAT_COLOR_BG_CHARGING (0x2ced9d)
 
 #define BAT_WIDTH 48
 #define BAT_HEIGHT 24
 #define BAT_PADDING 24
-#define BAT_RADIUS 10
+#define BAT_RADIUS 12
 
 #endif

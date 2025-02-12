@@ -37,16 +37,26 @@ private:
     static esp_err_t release_mmapfile();
     static void create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MMAP_RESOURCES_LISTS image, lv_event_cb_t cb);
 
+    lv_style_t panel_style;
+    lv_obj_t *header_bar = NULL;
+
+
     lv_obj_t *battery_label = NULL;
     lv_obj_t *battery_bg = NULL;
+
+    lv_obj_t *wifi_icon = NULL;
 
     lv_obj_t *lottie_ani = NULL;
     lv_obj_t *setting_image = NULL;
     lv_style_t *battery_style = NULL;
 
+
+    lv_obj_t* init_layout();
     void init_btn();
     /// @brief 创建电池电量控件
-    void create_battery_label();
+    void create_battery_label( lv_obj_t *baselayout);
+    /// @brief 创建 wifi 标识
+    void create_wifi_label();
 public:
     powermanager *power_manager;
     dispmanager *disp_manager;
