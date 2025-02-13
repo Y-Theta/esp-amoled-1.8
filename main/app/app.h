@@ -37,11 +37,10 @@ private:
     lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
     lv_disp_drv_t disp_drv;      // contains callback functions
 
-    lv_style_t header_bar_style;
     lv_obj_t *header_bar = NULL;
-
-    lv_style_t body_style;
-    lv_obj_t *body = NULL;
+    lv_obj_t *status_bar = NULL;
+    lv_obj_t *lottie_area = NULL;
+    lv_obj_t *console_prompt = NULL;
 
     lv_obj_t *battery_label = NULL;
     lv_obj_t *battery_bg = NULL;
@@ -49,8 +48,6 @@ private:
     lv_obj_t *wifi_icon = NULL;
 
     lv_obj_t *setting_btn = NULL;
-
-    lv_obj_t *lottie_ani = NULL;
 
     /// @brief 初始化硬件按钮
     void init_btn();
@@ -63,10 +60,13 @@ private:
     void create_battery_label(lv_obj_t *baselayout);
     /// @brief 创建 wifi 标识
     void create_wifi_label(lv_obj_t *baselayout);
+    /// @brief 
+    void wifi_window();
     /// @brief 创建上部区域控件
     void create_header_bar(lv_obj_t *baselayout);
     /// @brief 
-    void wifi_window();
+    /// @param baselayout 
+    void create_status_bar(lv_obj_t *baselayout);
 public:
 
     static COMMON::assets_info_t* get_mmap_assets(MMAP_RESOURCES_LISTS assets);

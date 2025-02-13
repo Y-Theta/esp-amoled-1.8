@@ -158,6 +158,7 @@ lv_obj_t *myapp::init_layout() {
     // lv_obj_set_flex_flow(screen, LV_FLEX_FLOW_COLUMN);
     // lv_obj_set_flex_align(screen, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER);
 
+    static lv_style_t header_bar_style;
     lv_style_init(&header_bar_style);
     lv_style_set_bg_opa(&header_bar_style, LV_OPA_0);
 
@@ -175,17 +176,44 @@ lv_obj_t *myapp::init_layout() {
     lv_obj_set_flex_align(header_bar, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_align(header_bar, LV_ALIGN_TOP_LEFT, 0, 0);
 
+    static lv_style_t body_style;
     lv_style_init(&body_style);
     lv_style_set_bg_opa(&body_style, LV_OPA_0);
 
-    body = lv_obj_create(screen);
-    lv_obj_remove_style_all(body);
-    lv_obj_add_style(body, &body_style, 0);
-    lv_obj_clear_flag(body, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_size(body, 240, 240);
-    lv_obj_align(body, LV_ALIGN_CENTER, 0, 0);
-    // lv_obj_set_layout(header_bar, LV_LAYOUT_FLEX);
-    // lv_obj_set_flex_grow(body, 1);
+    lottie_area = lv_obj_create(screen);
+    lv_obj_remove_style_all(lottie_area);
+    lv_obj_add_style(lottie_area, &body_style, 0);
+    lv_obj_clear_flag(lottie_area, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_size(lottie_area, LAYOUT_LOTTIE_AREA_W, LAYOUT_LOTTIE_AREA_H);
+    lv_obj_align(lottie_area, LV_ALIGN_CENTER, 0, -102);
+
+    static lv_style_t console_prompt_style;
+    lv_style_init(&console_prompt_style);
+    lv_style_set_bg_opa(&console_prompt_style, LV_OPA_0);
+
+    console_prompt = lv_obj_create(screen);
+    lv_obj_remove_style_all(console_prompt);
+    lv_obj_add_style(console_prompt, &console_prompt_style, 0);
+    lv_obj_clear_flag(console_prompt, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_size(console_prompt, LAYOUT_TEXT_AREA_W, LAYOUT_TEXT_AREA_H);
+    lv_obj_align(console_prompt, LV_ALIGN_CENTER, 0, -22);
+
+    static lv_style_t status_bar_style;
+    lv_style_init(&status_bar_style);
+    lv_style_set_bg_opa(&status_bar_style, LV_OPA_0);
+
+    status_bar = lv_obj_create(screen);
+    lv_obj_remove_style_all(status_bar);
+    lv_obj_add_style(status_bar, &status_bar_style, 0);
+    lv_obj_clear_flag(status_bar, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_size(status_bar, SCREEN_H_RES, LAYOUT_STATUS_HEIGHT);
+    lv_obj_set_style_pad_bottom(status_bar, LAYOUT_STATUS_PAD_BOTTOM, 0);
+    lv_obj_set_style_pad_left(status_bar, LAYOUT_STATUS_PAD_LEFT, 0);
+    lv_obj_set_style_pad_right(status_bar, LAYOUT_STATUS_PAD_RIGHT, 0);
+    lv_obj_set_layout(status_bar, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(status_bar, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(status_bar, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_align(status_bar, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 
     return screen;
 }

@@ -100,7 +100,7 @@ static const char *TAG = "AIChat";
 
 #endif
 
-#define LVGL_BUF_HEIGHT (SCREEN_V_RES / 4)
+#define LVGL_BUF_HEIGHT (SCREEN_V_RES / 3)
 #define LVGL_TICK_PERIOD_MS 2
 #define LVGL_TASK_MAX_DELAY_MS 384
 #define LVGL_TASK_MIN_DELAY_MS 25

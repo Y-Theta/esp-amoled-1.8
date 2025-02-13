@@ -16,7 +16,7 @@ void myapp::set_wifi_status(bool flag) {
     if (flag) {
         assets_info = myapp::get_mmap_assets(MMAP_RESOURCES_WIFI_SPNG);
     } else {
-        assets_info = myapp::get_mmap_assets(MMAP_RESOURCES_NOWIFI_SPNG);
+        assets_info = myapp::get_mmap_assets(MMAP_RESOURCES_WIFI_NO_SPNG);
     }
     img_wink_png.data_size = assets_info->size;
     img_wink_png.data = assets_info->buf;
@@ -60,7 +60,7 @@ void myapp::create_battery_label(lv_obj_t *baselayout) {
     battery_bg = lv_obj_create(baselayout);
     lv_obj_remove_style_all(battery_bg);
     lv_obj_add_style(battery_bg, &style_bat_bg, 0);
-    lv_obj_align(battery_bg, LV_ALIGN_TOP_RIGHT, -BTN_TOP_PADDING, BAT_PADDING);
+    // lv_obj_align(battery_bg, LV_ALIGN_TOP_RIGHT, -BTN_TOP_PADDING, BAT_PADDING);
     lv_obj_set_size(battery_bg, BAT_WIDTH, BAT_HEIGHT);
     lv_obj_set_flex_grow(battery_bg, 0);
 
@@ -79,17 +79,18 @@ void myapp::create_wifi_label(lv_obj_t *baselayout) {
     wifi_icon = lv_img_create(baselayout);
     set_wifi_status(this->view_model.is_wifi_connect);
     lv_img_set_size_mode(wifi_icon, LV_IMG_SIZE_MODE_REAL);
-    lv_obj_set_size(wifi_icon, ICON_WIFI_WIDTH, ICON_WIFI_HEIGHT);
-    lv_obj_set_style_pad_left(wifi_icon, 8, 0);
+    lv_obj_set_size(wifi_icon, ICON_INACTIVE_W, ICON_INACTIVE_H);
+    // lv_obj_set_style_pad_right(wifi_icon, 12, 0);
     lv_obj_set_flex_grow(wifi_icon, 0);
 }
 
 void myapp::create_header_bar(lv_obj_t *baselayout) {
-    create_image_btn(setting_btn, baselayout, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
+    // create_image_btn(setting_btn, baselayout, this, MMAP_RESOURCES_SETTING_SPNG, on_setting_tap);
     create_wifi_label(baselayout);
     auto spaceobj = lv_obj_create(baselayout);
     lv_obj_remove_style_all(spaceobj);
     lv_obj_set_flex_grow(spaceobj, 1);
+
     create_battery_label(baselayout);
 }
 
