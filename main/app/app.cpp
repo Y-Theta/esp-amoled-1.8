@@ -4,6 +4,16 @@ mmap_assets_handle_t myapp::mmap_drive_handle = NULL;
 esp_lv_decoder_handle_t myapp::decoder_handle = NULL;
 std::map<MMAP_RESOURCES_LISTS, COMMON::assets_info_t> myapp::assets_map;
 
+static void on_wifi_scaned(wifimanager *manager, void *userctx) {
+    auto *app = static_cast<myapp *>(userctx);
+    if (manager->scan_result && (manager->scan_result->count > 0)) {
+        for (size_t i = 0; i < manager->scan_result->count; i++) {
+            auto info = manager->scan_result->infos + i;
+            ESP_LOGI(TAG, "wifi scaned : %s %d", info->ssid, info->rssi);
+        }
+    };
+}
+
 void myapp::init() {
     device_manager->init_i2c();
     power_manager->init();
@@ -12,8 +22,12 @@ void myapp::init() {
     device_manager->set_brightness(128);
     device_manager->init_touch();
     power_manager->start_power_monitor();
-    init_framework();
+
+    wifi_manager->userctx = this;
+    wifi_manager->on_wifi_scaned = on_wifi_scaned;
+
     init_btn();
+    init_framework();
     esp_lv_decoder_init(&decoder_handle);
 }
 
@@ -150,6 +164,26 @@ esp_err_t myapp::release_mmapfile(void) {
     return ESP_OK;
 }
 
+lv_obj_t *myapp::create_image_btn(myapp *app, lv_obj_t *screen, MMAP_RESOURCES_LISTS image, int32_t btn_size, lv_event_cb_t cb) {
+
+    lv_obj_t *pointer = lv_btn_create(screen);
+    lv_obj_add_event_cb(pointer, cb, LV_EVENT_CLICKED, app);
+    lv_obj_set_style_bg_opa(pointer, LV_OPA_0, 0);
+    lv_obj_set_style_bg_opa(pointer, LV_OPA_0, LV_STATE_PRESSED);
+    lv_obj_set_size(pointer, btn_size, btn_size);
+    lv_obj_set_flex_grow(pointer, 0);
+
+    auto lvimage = lv_img_create(pointer);
+    auto assets_info = myapp::get_mmap_assets(image);
+    lv_img_dsc_t *img_wink_png = (lv_img_dsc_t *)heap_caps_malloc(sizeof(lv_img_dsc_t), MALLOC_CAP_SPIRAM);
+    img_wink_png->data_size = assets_info->size;
+    img_wink_png->data = assets_info->buf;
+    lv_img_set_src(lvimage, img_wink_png);
+    lv_obj_align(lvimage, LV_ALIGN_CENTER, 0, 0);
+
+    return pointer;
+}
+
 lv_obj_t *myapp::init_layout() {
     auto screen = lv_scr_act();
     lv_obj_set_style_bg_color(screen, LV_COLOR_MAKE(0, 0, 0), LV_STATE_DEFAULT);
@@ -185,7 +219,7 @@ lv_obj_t *myapp::init_layout() {
     lv_obj_add_style(lottie_area, &body_style, 0);
     lv_obj_clear_flag(lottie_area, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_size(lottie_area, LAYOUT_LOTTIE_AREA_W, LAYOUT_LOTTIE_AREA_H);
-    lv_obj_align(lottie_area, LV_ALIGN_CENTER, 0, -102);
+    lv_obj_align(lottie_area, LV_ALIGN_CENTER, 0, -((SCREEN_V_RES / 2) - (LAYOUT_LOTTIE_AREA_H / 2) - LAYOUT_CTL_PANEL_HEIGHT));
 
     static lv_style_t console_prompt_style;
     lv_style_init(&console_prompt_style);
@@ -196,7 +230,7 @@ lv_obj_t *myapp::init_layout() {
     lv_obj_add_style(console_prompt, &console_prompt_style, 0);
     lv_obj_clear_flag(console_prompt, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_size(console_prompt, LAYOUT_TEXT_AREA_W, LAYOUT_TEXT_AREA_H);
-    lv_obj_align(console_prompt, LV_ALIGN_CENTER, 0, -22);
+    lv_obj_align(console_prompt, LV_ALIGN_CENTER, 0, -((SCREEN_V_RES / 2) - LAYOUT_LOTTIE_AREA_H - LAYOUT_CTL_PANEL_HEIGHT));
 
     static lv_style_t status_bar_style;
     lv_style_init(&status_bar_style);
@@ -212,13 +246,10 @@ lv_obj_t *myapp::init_layout() {
     lv_obj_set_style_pad_right(status_bar, LAYOUT_STATUS_PAD_RIGHT, 0);
     lv_obj_set_layout(status_bar, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(status_bar, LV_FLEX_FLOW_ROW);
-    lv_obj_set_flex_align(status_bar, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_flex_align(status_bar, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_align(status_bar, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 
     return screen;
-}
-
-void thorvgtest() {
 }
 
 void myapp::init_ui_elements() {
@@ -227,13 +258,11 @@ void myapp::init_ui_elements() {
 
     // 创建状态栏
     create_header_bar(header_bar);
-
-    thorvgtest();
-
+    create_status_bar(status_bar);
 }
 
 void myapp::pause_ani() {
-    ESP_LOGI(TAG, "free heap: %d,\nfree internal: %d ", esp_get_free_heap_size(), esp_get_free_internal_heap_size());
+    ESP_LOGI(TAG, "\nfree heap: %d,\nfree internal: %d ", esp_get_free_heap_size(), esp_get_free_internal_heap_size());
     // lv_rlottie_set_play_mode(lottie_ani, LV_RLOTTIE_CTRL_PAUSE);
 }
 

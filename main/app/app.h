@@ -32,7 +32,7 @@ private:
 
     static esp_err_t init_mmapfile();
     static esp_err_t release_mmapfile();
-    static void create_image_btn(lv_obj_t *pointer, lv_obj_t *screen, myapp *app, MMAP_RESOURCES_LISTS image, lv_event_cb_t cb);
+    static lv_obj_t* create_image_btn(myapp *app, lv_obj_t *container, MMAP_RESOURCES_LISTS image, int32_t btn_size, lv_event_cb_t cb);
 
     lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
     lv_disp_drv_t disp_drv;      // contains callback functions
@@ -46,6 +46,9 @@ private:
     lv_obj_t *battery_bg = NULL;
 
     lv_obj_t *wifi_icon = NULL;
+
+    lv_obj_t* setting_window_ptr = NULL;
+    lv_obj_t* wifi_list_ptr = NULL;
 
     lv_obj_t *setting_btn = NULL;
 
@@ -61,7 +64,7 @@ private:
     /// @brief 创建 wifi 标识
     void create_wifi_label(lv_obj_t *baselayout);
     /// @brief 
-    void wifi_window();
+    void setting_window();
     /// @brief 创建上部区域控件
     void create_header_bar(lv_obj_t *baselayout);
     /// @brief 
@@ -90,7 +93,8 @@ public:
     void update_battery_status(powermanager *manager);
 
     void set_wifi_status(bool flag);
-    void open_wifi_setting();
+    void open_setting();
+    void close_setting();
 
     void pause_ani();
     void resume_ani();

@@ -7,12 +7,12 @@
 #include "style.h"
 #endif
 
+#include <map>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <map>
 
 #include "cJSON.h"
 #include "driver/gpio.h"
@@ -51,6 +51,8 @@ static const char *TAG = "AIChat";
 
 #define PMU_INPUT_PIN (gpio_num_t) CONFIG_PMU_INTERRUPT_PIN /*!< axp power chip interrupt Pin*/
 #define PMU_INPUT_PIN_SEL (1ULL << PMU_INPUT_PIN)
+
+#define WIFI_SCAN_LIST_SIZE 8
 
 #define I2C_MASTER_NUM (i2c_port_t) I2C_NUM_0
 #define I2C_MASTER_FREQ_HZ CONFIG_I2C_MASTER_FREQUENCY /*!< I2C master clock frequency */
@@ -100,7 +102,7 @@ static const char *TAG = "AIChat";
 
 #endif
 
-#define LVGL_BUF_HEIGHT (SCREEN_V_RES / 3)
+#define LVGL_BUF_HEIGHT (SCREEN_V_RES / 4)
 #define LVGL_TICK_PERIOD_MS 2
 #define LVGL_TASK_MAX_DELAY_MS 384
 #define LVGL_TASK_MIN_DELAY_MS 25
@@ -144,12 +146,36 @@ typedef struct {
 
 typedef struct {
     int32_t size;
-    const uint8_t* buf;
+    const uint8_t *buf;
 } assets_info_t;
 
 typedef struct {
 
 } image_btn_info_t;
+
+typedef enum {
+    connected = 0,
+    ap_started = 1,
+} wifi_connect_result;
+
+typedef struct {
+    wifi_ap_record_t *infos;
+    int count;
+} wifi_scan_result;
+
+typedef struct {
+    uint8_t bssid[6];                     /**< MAC address of AP */
+    uint8_t ssid[33];                     /**< SSID of AP */
+    uint8_t primary;                      /**< Channel of AP */
+    wifi_second_chan_t second;            /**< Secondary channel of AP */
+    int8_t  rssi;   
+} wifi_ap_info;
+
+struct SsidItem {
+    char* ssid;
+    char* password;
+};
+
 } // namespace COMMON
 
 #endif
