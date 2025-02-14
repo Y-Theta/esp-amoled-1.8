@@ -112,7 +112,7 @@ void myapp::init_framework() {
     ESP_LOGI(TAG, "Initialize LVGL library");
     lv_init();
 
-    void *buf1 = heap_caps_malloc(SCREEN_H_RES * LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
+    void *buf1 = heap_caps_malloc(SCREEN_H_RES * LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
     assert(buf1);
     // void *buf2 = heap_caps_malloc(SCREEN_H_RES * LVGL_BUF_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_DMA);
     // assert(buf2);

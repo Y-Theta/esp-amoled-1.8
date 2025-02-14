@@ -7,9 +7,9 @@ std::map<MMAP_RESOURCES_LISTS, COMMON::assets_info_t> myapp::assets_map;
 static void on_wifi_scaned(wifimanager *manager, void *userctx) {
     auto *app = static_cast<myapp *>(userctx);
     if (manager->scan_result && (manager->scan_result->count > 0)) {
-        for (size_t i = 0; i < manager->scan_result->count; i++) {
-            auto info = manager->scan_result->infos + i;
-            ESP_LOGI(TAG, "wifi scaned : %s %d", info->ssid, info->rssi);
+        if (utils::GetInstance().lvgl_lock(-1)) {
+            app->update_wifi_aps();
+            utils::GetInstance().lvgl_unlock();
         }
     };
 }
@@ -169,7 +169,9 @@ lv_obj_t *myapp::create_image_btn(myapp *app, lv_obj_t *screen, MMAP_RESOURCES_L
     lv_obj_t *pointer = lv_btn_create(screen);
     lv_obj_add_event_cb(pointer, cb, LV_EVENT_CLICKED, app);
     lv_obj_set_style_bg_opa(pointer, LV_OPA_0, 0);
+    lv_obj_set_style_shadow_width(pointer, 0, 0);
     lv_obj_set_style_bg_opa(pointer, LV_OPA_0, LV_STATE_PRESSED);
+    lv_obj_set_style_shadow_width(pointer, 0, LV_STATE_PRESSED);
     lv_obj_set_size(pointer, btn_size, btn_size);
     lv_obj_set_flex_grow(pointer, 0);
 
@@ -267,6 +269,7 @@ void myapp::pause_ani() {
 }
 
 void myapp::resume_ani() {
+    ESP_LOGI(TAG, "\nfree heap: %d,\nfree internal: %d ", esp_get_free_heap_size(), esp_get_free_internal_heap_size());
     // auto lottie_ = lv_lottie_get_anim(lottie_ani);
     // uint32_t a, b;
     // lv_lottie_get_segment(lottie_ani, &a, &b);

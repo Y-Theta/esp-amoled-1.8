@@ -38,5 +38,6 @@
 
 #define WIN_WIFI_LIST_HEADER_HEIGHT (ICON_ACTIVE_H + 12)
 #define WIN_WIFI_LIST_TITLE_FG (0xffffff)
+#define WIN_WIFI_LIST_TITLE_BG (0x000000)
 
 #endif

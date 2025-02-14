@@ -18,6 +18,10 @@
 #include "utils/fsmanager.h"
 #endif
 
+#ifndef USE_UTILS
+#include "utils/utils.h"
+#endif
+
 #ifndef MY_APP
 #define MY_APP
 #include "esp_lv_decoder.h"
@@ -93,6 +97,7 @@ public:
     void update_battery_status(powermanager *manager);
 
     void set_wifi_status(bool flag);
+    void update_wifi_aps();
     void open_setting();
     void close_setting();
 

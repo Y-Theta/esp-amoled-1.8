@@ -63,7 +63,7 @@ static const char *TAG = "AIChat";
 #define I2C_MASTER_RX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_TIMEOUT_MS 1000
 
-#define LCD_HOST SPI2_HOST
+#define LCD_HOST SPI3_HOST
 #define TOUCH_HOST I2C_NUM_0
 #define LCD_BIT_PER_PIXEL (16)
 
@@ -102,7 +102,7 @@ static const char *TAG = "AIChat";
 
 #endif
 
-#define LVGL_BUF_HEIGHT (SCREEN_V_RES / 4)
+#define LVGL_BUF_HEIGHT (SCREEN_V_RES / 8)
 #define LVGL_TICK_PERIOD_MS 2
 #define LVGL_TASK_MAX_DELAY_MS 384
 #define LVGL_TASK_MIN_DELAY_MS 25
@@ -111,17 +111,22 @@ static const char *TAG = "AIChat";
 
 typedef void (*gpio_isr_t)(void *arg);
 
-static volatile SemaphoreHandle_t lvgl_mux = NULL;
+// static volatile SemaphoreHandle_t lvgl_mux = NULL;
 
-static bool lvgl_lock(int timeout_ms) {
-    assert(lvgl_mux && "bsp_display_start must be called first");
-    const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
-    return xSemaphoreTake(lvgl_mux, timeout_ticks) == pdTRUE;
-}
+// static bool lvgl_lock(int timeout_ms) {
+//     assert(lvgl_mux && "bsp_display_start must be called first");
+//     const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
+//     return xSemaphoreTake(lvgl_mux, timeout_ticks) == pdTRUE;
+// }
 
-static void lvgl_unlock(void) {
-    assert(lvgl_mux && "bsp_display_start must be called first");
-    xSemaphoreGive(lvgl_mux);
+// static void lvgl_unlock(void) {
+//     assert(lvgl_mux && "bsp_display_start must be called first");
+//     xSemaphoreGive(lvgl_mux);
+// }
+
+static void set_text_style(lv_obj_t *obj) {
+    lv_obj_set_style_text_color(obj, lv_color_hex(WIN_WIFI_LIST_TITLE_FG), 0);
+    lv_obj_set_style_bg_color(obj, lv_color_hex(WIN_WIFI_LIST_TITLE_BG), 0);
 }
 
 namespace COMMON {
@@ -159,21 +164,21 @@ typedef enum {
 } wifi_connect_result;
 
 typedef struct {
+    uint8_t bssid[6];          /**< MAC address of AP */
+    uint8_t ssid[33];          /**< SSID of AP */
+    uint8_t primary;           /**< Channel of AP */
+    wifi_second_chan_t second; /**< Secondary channel of AP */
+    int8_t rssi;
+} wifi_ap_info;
+
+typedef struct {
     wifi_ap_record_t *infos;
     int count;
 } wifi_scan_result;
 
-typedef struct {
-    uint8_t bssid[6];                     /**< MAC address of AP */
-    uint8_t ssid[33];                     /**< SSID of AP */
-    uint8_t primary;                      /**< Channel of AP */
-    wifi_second_chan_t second;            /**< Secondary channel of AP */
-    int8_t  rssi;   
-} wifi_ap_info;
-
 struct SsidItem {
-    char* ssid;
-    char* password;
+    char *ssid;
+    char *password;
 };
 
 } // namespace COMMON
